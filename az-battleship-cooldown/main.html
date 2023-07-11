@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script src="main.js"></script>
+        <link rel="stylesheet" href="styles.css">
+
+        <script>GetShipNames()</script>
+    </head>
+
+    <body>
+        <table id="shipTable">
+            <tr>
+                <th>Icon</th>
+                <th>Ship Name</th>
+                <th>Reload</th>
+                <th>Stat Bonuses (%)</th>
+                <th>Weapon</th>
+                <th>Expected Cooldown (s)</th>
+                <th>Optimize to Ship?</th>
+            </tr>
+        </table>
+
+        <input id="generateRowButton" type="button" onclick="GenerateRow()" value="Generate Row" disabled="true"></input>
+        <input type="button" onclick="Calculate()" value="Calculate"></input>
+    </body>
+</html>
