@@ -139,21 +139,22 @@ function Optimize(currentRow) {
     }
 }
 
-function GenerateRow() {
-    let shipTable = document.getElementById("shipTable")
-    const row = document.createElement("tr")
-
-    // Icon
+function GenerateShipImage(Row) {
     let cell = document.createElement("td")
     let div = document.createElement("div")
     div.setAttribute("id", "shipImageBackground" + rows)
     let image = document.createElement("img")
     image.setAttribute("id", "shipImage" + rows)
     div.appendChild(image)
-    row.appendChild(div)
+    cell.appendChild(div)
+    Row.appendChild(cell)
+}
 
-    // Ship name
-    cell = document.createElement("td")
+function GenerateShipInfo(Row) {
+    let cell = document.createElement("td")
+    cell.setAttribute("style", "text-align:center")
+    cell.innerHTML += "<b>Name:</b> "
+
     let ship = document.createElement("select")
     ship.setAttribute("onchange", "UpdateShip(this.value, this.id)")
     ship.setAttribute("id", "ship" + rows)
@@ -180,46 +181,117 @@ function GenerateRow() {
     }
 
     cell.appendChild(ship)
-    row.appendChild(cell)
+    cell.innerHTML += "<br>"
 
     // Reload stat of specific ship.
-    cell = document.createElement("td")
+    cell.innerHTML += "<b>Reload: </b> "
     let shipReload = document.createElement("input")
     shipReload.setAttribute("id", "shipReload" + rows)
     cell.appendChild(shipReload)
-    row.appendChild(cell)
+    cell.innerHTML += "<br>"
 
     // Stat bonuses for ships.
-    cell = document.createElement("td")
+    cell.innerHTML += "<b>Stat bonus (%): </b>"
     let statBonus = document.createElement("input")
     statBonus.setAttribute("id", "statBonus" + rows)
     cell.appendChild(statBonus)
-    row.appendChild(cell)
 
-    // Reload stat of specific weapon.
-    cell = document.createElement("td")
-    let weaponReload = document.createElement("input")
-    weaponReload.setAttribute("id", "weaponReload" + rows)
-    cell.appendChild(weaponReload)
-    row.appendChild(cell)
+    Row.appendChild(cell)
+}
 
-    // Expected battleship cooldown
-    cell = document.createElement("td")
-    let cooldown = document.createElement("div")
-    cooldown.setAttribute("id", "cooldown" + rows)
-    cell.appendChild(cooldown)
-    row.appendChild(cell)
+function GenerateRow() {
+    let ShipTable = document.getElementById("shipTable")
+    let Row = document.createElement("tr")
 
-    // Optimize weapon cooldowns to ship
-    cell = document.createElement("td")
-    let optimize = document.createElement("input")
-    optimize.setAttribute("type", "button")
-    optimize.setAttribute("onclick", "Optimize(" + rows + ")")
-    optimize.setAttribute("value", "Optimize!")
-    cell.appendChild(optimize)
-    row.appendChild(cell)
+    GenerateShipImage(Row)
+    GenerateShipInfo(Row)
 
-    shipTable.appendChild(row)
+    ShipTable.appendChild(Row)
     rows += 1
 }
+
+
+// function GenerateRow() {
+//     let shipTable = document.getElementById("shipTable")
+//     const row = document.createElement("tr")
+
+//     // Icon
+//     let cell = document.createElement("td")
+//     let div = document.createElement("div")
+//     div.setAttribute("id", "shipImageBackground" + rows)
+//     let image = document.createElement("img")
+//     image.setAttribute("id", "shipImage" + rows)
+//     div.appendChild(image)
+//     row.appendChild(div)
+
+//     // Ship name
+//     cell = document.createElement("td")
+//     let ship = document.createElement("select")
+//     ship.setAttribute("onchange", "UpdateShip(this.value, this.id)")
+//     ship.setAttribute("id", "ship" + rows)
+
+//     // Create the default option in dropdown
+//     let option = document.createElement("option")
+//     option.setAttribute('value', '')
+//     option.setAttribute('selected', '')
+//     option.setAttribute('disabled', '')
+//     option.setAttribute('hidden', '')
+//     let optionText = document.createTextNode("Choose here")
+//     option.appendChild(optionText)
+//     ship.appendChild(option)
+
+//     // Populate dropdown with ship names
+//     for (const name of shipNames) {
+//         option = document.createElement("option")
+//         option.setAttribute('value', name)
+
+//         optionText = document.createTextNode(name)
+//         option.appendChild(optionText)
+
+//         ship.appendChild(option)
+//     }
+
+//     cell.appendChild(ship)
+//     row.appendChild(cell)
+
+//     // Reload stat of specific ship.
+//     cell = document.createElement("td")
+//     let shipReload = document.createElement("input")
+//     shipReload.setAttribute("id", "shipReload" + rows)
+//     cell.appendChild(shipReload)
+//     row.appendChild(cell)
+
+//     // Stat bonuses for ships.
+//     cell = document.createElement("td")
+//     let statBonus = document.createElement("input")
+//     statBonus.setAttribute("id", "statBonus" + rows)
+//     cell.appendChild(statBonus)
+//     row.appendChild(cell)
+
+//     // Reload stat of specific weapon.
+//     cell = document.createElement("td")
+//     let weaponReload = document.createElement("input")
+//     weaponReload.setAttribute("id", "weaponReload" + rows)
+//     cell.appendChild(weaponReload)
+//     row.appendChild(cell)
+
+//     // Expected battleship cooldown
+//     cell = document.createElement("td")
+//     let cooldown = document.createElement("div")
+//     cooldown.setAttribute("id", "cooldown" + rows)
+//     cell.appendChild(cooldown)
+//     row.appendChild(cell)
+
+//     // Optimize weapon cooldowns to ship
+//     cell = document.createElement("td")
+//     let optimize = document.createElement("input")
+//     optimize.setAttribute("type", "button")
+//     optimize.setAttribute("onclick", "Optimize(" + rows + ")")
+//     optimize.setAttribute("value", "Optimize!")
+//     cell.appendChild(optimize)
+//     row.appendChild(cell)
+
+//     shipTable.appendChild(row)
+//     rows += 1
+// }
 
