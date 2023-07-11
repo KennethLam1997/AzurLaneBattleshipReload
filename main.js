@@ -113,6 +113,21 @@ function UpdateShip(shipName, elementID) {
     })
 }
 
+function OathBonus(elementID) {
+    let i = parseInt(elementID)
+    let oathBonus = document.getElementById("oathBonus" + i)
+    let shipReload = document.getElementById("shipReload" + i)
+
+    if (shipReload.value) {
+        if (oathBonus.checked == true) {
+            shipReload.value = (shipReload.value / 1.06 * 1.12).toFixed(2)
+        }
+        else {
+            shipReload.value = (shipReload.value / 1.12 * 1.06).toFixed(2)
+        }
+    }
+}
+
 function GetWeaponNames() {
     var params = {
         action: "query",
@@ -251,9 +266,8 @@ function GenerateShipInfo(Row) {
     Cell.innerHTML += "<b>Name:</b> "
 
     let ship = document.createElement("select")
-    ship.setAttribute("onchange", "UpdateShip(this.value, this.dataset.index)")
+    ship.setAttribute("onchange", "UpdateShip(this.value, " + rows + ")")
     ship.setAttribute("id", "ship" + rows)
-    ship.setAttribute("data-index", rows)
 
     // Create the default option in dropdown
     let option = document.createElement("option")
@@ -291,6 +305,15 @@ function GenerateShipInfo(Row) {
     let statBonus = document.createElement("input")
     statBonus.setAttribute("id", "statBonus" + rows)
     Cell.appendChild(statBonus)
+    Cell.innerHTML += "<br>"
+
+    // Oath bonuses for ships.
+    Cell.innerHTML += "<b>Oathed?: </b>"
+    let oathBonus = document.createElement("input")
+    oathBonus.setAttribute("id", "oathBonus" + rows)
+    oathBonus.setAttribute("type", "checkbox")
+    oathBonus.setAttribute("onclick", "OathBonus(" + rows + ")")
+    Cell.appendChild(oathBonus)
 
     Row.appendChild(Cell)
 }
@@ -314,9 +337,8 @@ function GenerateWeaponInfo(Row) {
     Cell.innerHTML += "<b>Name:</b> "
 
     let weapon = document.createElement("select")
-    weapon.setAttribute("onchange", "UpdateWeapon(this.value, this.dataset.index)")
+    weapon.setAttribute("onchange", "UpdateWeapon(this.value, " + rows + ")")
     weapon.setAttribute("id", "weapon" + rows)
-    weapon.setAttribute("data-index", rows)
 
     // Create the default option in dropdown
     let option = document.createElement("option")
