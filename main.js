@@ -1,4 +1,5 @@
 let shipNames = []
+let weaponNames = []
 let rows = 1
 
 function ReloadTime(reloadStat, statBonus, weaponReloadTime) {
@@ -47,7 +48,7 @@ function GetShipNames() {
 }
 
 function UpdateShip(shipName, elementID) {
-    let i = parseInt(elementID.match(/ship([0-9]+)/)[1])
+    let i = parseInt(elementID)
 
     var params = {
         page: shipName,
@@ -112,6 +113,100 @@ function UpdateShip(shipName, elementID) {
     })
 }
 
+function GetWeaponNames() {
+    var params = {
+        action: "query",
+        prop: "links",
+        titles: "List of Battleship Guns",
+        pllimit: 500,
+        format: "json"
+    }
+
+    let url = GetURL(params)
+
+    fetch (url)
+    .then(function(response) {
+        return response.json()
+    })
+    .then(function(response) {
+        let weapons = response.query.pages[2004].links
+
+        for (const weapon of weapons) {
+            let weaponName = weapon.title
+
+            if (weaponName.includes("Quadruple") || weaponName.includes("Triple") || weaponName.includes("Twin")) {
+                weaponNames.push(weaponName)
+            }
+        }
+    })
+}
+
+function UpdateWeapon(weaponName, elementID) {
+    let i = parseInt(elementID)
+
+    var params = {
+        page: weaponName,
+        action: "parse",
+        prop: "wikitext",
+        format: "json"
+    }
+
+    let url = GetURL(params)
+
+    fetch (url)
+    .then(function(response) {
+        return response.json()
+    })
+    .then(function(response) {
+        let page = response.parse.wikitext["*"]
+
+        let reload = page.match(/RoFMax = ([0-9.]+)/)[1]
+        let weaponReload = document.getElementById("weaponReload" + i)
+        weaponReload.setAttribute("value", reload)
+
+        let rarity = page.match(/Stars = ([0-9]+)/)[1]
+        let weaponImageBackground = document.getElementById("weaponImageBackground" + i)
+
+        if (rarity == "6") {weaponImageBackground.setAttribute('class', 'ultra_rare')}
+        else if (rarity == "5") {weaponImageBackground.setAttribute('class', 'super_rare')}
+        else if (rarity == "4") {weaponImageBackground.setAttribute('class', 'elite')}
+        else if (rarity == "3") {weaponImageBackground.setAttribute('class', 'rare')}
+        else {weaponImageBackground.setAttribute('class', 'common')}
+    })
+
+    var params = {
+        action: "query",
+        format: "json",
+        prop: "imageinfo",
+        titles: weaponName,
+        generator: "images",
+        iiprop: "url",
+        gimlimit: 500
+    }
+
+    url = GetURL(params)
+
+    fetch (url)
+    .then(function(response) {
+        return response.json()
+    })
+    .then(function(response) {
+        let images = response.query.pages
+
+        for (const key in images) {
+            let title = images[key].title
+
+            if (title.match(/File:[0-9]+.png/)) {
+                let imageURL = images[key].imageinfo[0].url
+
+                let icon = document.getElementById("weaponImage" + i)
+                icon.setAttribute("src", imageURL)
+                break
+            }
+        }
+    })
+}
+
 function Calculate() {
     let shipTable = document.getElementById("shipTable")
 
@@ -140,24 +235,25 @@ function Optimize(currentRow) {
 }
 
 function GenerateShipImage(Row) {
-    let cell = document.createElement("td")
+    const Cell = document.createElement("td")
     let div = document.createElement("div")
     div.setAttribute("id", "shipImageBackground" + rows)
     let image = document.createElement("img")
     image.setAttribute("id", "shipImage" + rows)
     div.appendChild(image)
-    cell.appendChild(div)
-    Row.appendChild(cell)
+    Cell.appendChild(div)
+    Row.appendChild(Cell)
 }
 
 function GenerateShipInfo(Row) {
-    let cell = document.createElement("td")
-    cell.setAttribute("style", "text-align:center")
-    cell.innerHTML += "<b>Name:</b> "
+    const Cell = document.createElement("td")
+    Cell.setAttribute("style", "text-align:center")
+    Cell.innerHTML += "<b>Name:</b> "
 
     let ship = document.createElement("select")
-    ship.setAttribute("onchange", "UpdateShip(this.value, this.id)")
+    ship.setAttribute("onchange", "UpdateShip(this.value, this.dataset.index)")
     ship.setAttribute("id", "ship" + rows)
+    ship.setAttribute("data-index", rows)
 
     // Create the default option in dropdown
     let option = document.createElement("option")
@@ -180,31 +276,99 @@ function GenerateShipInfo(Row) {
         ship.appendChild(option)
     }
 
-    cell.appendChild(ship)
-    cell.innerHTML += "<br>"
+    Cell.appendChild(ship)
+    Cell.innerHTML += "<br>"
 
     // Reload stat of specific ship.
-    cell.innerHTML += "<b>Reload: </b> "
+    Cell.innerHTML += "<b>Reload: </b> "
     let shipReload = document.createElement("input")
     shipReload.setAttribute("id", "shipReload" + rows)
-    cell.appendChild(shipReload)
-    cell.innerHTML += "<br>"
+    Cell.appendChild(shipReload)
+    Cell.innerHTML += "<br>"
 
     // Stat bonuses for ships.
-    cell.innerHTML += "<b>Stat bonus (%): </b>"
+    Cell.innerHTML += "<b>Stat bonus (%): </b>"
     let statBonus = document.createElement("input")
     statBonus.setAttribute("id", "statBonus" + rows)
-    cell.appendChild(statBonus)
+    Cell.appendChild(statBonus)
 
-    Row.appendChild(cell)
+    Row.appendChild(Cell)
+}
+
+function GenerateWeaponImage(Row) {
+    const Cell = document.createElement("td")
+    let div = document.createElement("div")
+    div.setAttribute("id", "weaponImageBackground" + rows)
+    let image = document.createElement("img")
+    image.setAttribute("id", "weaponImage" + rows)
+    image.setAttribute("width", "128")
+    image.setAttribute("height", "128")
+    div.appendChild(image)
+    Cell.appendChild(div)
+    Row.appendChild(Cell)
+}
+
+function GenerateWeaponInfo(Row) {
+    const Cell = document.createElement("td")
+    Cell.setAttribute("style", "text-align:center")
+    Cell.innerHTML += "<b>Name:</b> "
+
+    let weapon = document.createElement("select")
+    weapon.setAttribute("onchange", "UpdateWeapon(this.value, this.dataset.index)")
+    weapon.setAttribute("id", "weapon" + rows)
+    weapon.setAttribute("data-index", rows)
+
+    // Create the default option in dropdown
+    let option = document.createElement("option")
+    option.setAttribute('value', '')
+    option.setAttribute('selected', '')
+    option.setAttribute('disabled', '')
+    option.setAttribute('hidden', '')
+    let optionText = document.createTextNode("Choose here")
+    option.appendChild(optionText)
+    weapon.appendChild(option)
+
+    // Populate dropdown with weapon names
+    for (const name of weaponNames) {
+        option = document.createElement("option")
+        option.setAttribute('value', name)
+
+        optionText = document.createTextNode(name)
+        option.appendChild(optionText)
+
+        weapon.appendChild(option)
+    }
+
+    Cell.appendChild(weapon)
+    Cell.innerHTML += "<br>"
+
+    // Reload stat of specific weapon.
+    Cell.innerHTML += "<b>Reload: </b>"
+    let weaponReload = document.createElement("input")
+    weaponReload.setAttribute("id", "weaponReload" + rows)
+    Cell.appendChild(weaponReload)
+
+    Row.appendChild(Cell)
+}
+
+function GenerateCooldown(Row) {
+    // Expected battleship cooldown
+    const Cell = document.createElement("td")
+    let cooldown = document.createElement("div")
+    cooldown.setAttribute("id", "cooldown" + rows)
+    Cell.appendChild(cooldown)
+    Row.appendChild(Cell)
 }
 
 function GenerateRow() {
-    let ShipTable = document.getElementById("shipTable")
-    let Row = document.createElement("tr")
+    const ShipTable = document.getElementById("shipTable")
+    const Row = document.createElement("tr")
 
     GenerateShipImage(Row)
     GenerateShipInfo(Row)
+    GenerateWeaponImage(Row)
+    GenerateWeaponInfo(Row)
+    GenerateCooldown(Row)
 
     ShipTable.appendChild(Row)
     rows += 1
