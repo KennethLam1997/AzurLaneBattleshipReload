@@ -152,7 +152,7 @@ function GenerateWeaponInfo(Row) {
     weapon.appendChild(option)
 
     // Populate dropdown with weapon names
-    for (const name of weaponNames) {
+    for (const name of sessionStorage.getItem("weaponNames").split(",")) {
         option = document.createElement("option")
         option.setAttribute('value', name)
 
@@ -190,7 +190,7 @@ function GenerateRow() {
     GenerateShipImage(Row)
     GenerateShipInfo(Row)
     GenerateWeaponImage(Row)
-    // GenerateWeaponInfo(Row)
+    GenerateWeaponInfo(Row)
     GenerateCooldown(Row)
 
     ShipTable.appendChild(Row)

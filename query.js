@@ -1,3 +1,6 @@
+const dbName = "azurlanedb"
+const dbVersion = 2
+
 function GetURL(params) {
     let url = "https://azurlane.koumakan.jp/w/api.php?origin=*"
     Object.keys(params).forEach(function(key){url += "&" + key + "=" + params[key];});
@@ -5,121 +8,189 @@ function GetURL(params) {
 }
 
 async function GetShipNames() {
-    if (!sessionStorage.getItem("shipNames")) {
-        const params = {
-            action: "query",
-            list: "categorymembers",
-            cmtitle: "Category:Battleships",
-            cmlimit: 500,
-            format: "json"
-        }
-    
-        const url = GetURL(params)
-        const response = await fetch(url)
-        const json = await response.json()
-        const pages = json.query.categorymembers
-        let shipNames = []
-
-        for (const ship of pages) {
-            let shipName = ship.title
-
-            if (!shipName.includes("Category:")) {
-                shipNames.push(ship.title)
-            }
-        }
-
-        if (!shipNames) {
-            console.log("Ships could not be loaded.")
-        }
-
-        sessionStorage.setItem("shipNames", shipNames)
+    if (sessionStorage.getItem("shipNames")) {
+        document.getElementById("generateRowButton").disabled = false
+        return
     }
 
+    const params = {
+        action: "query",
+        list: "categorymembers",
+        cmtitle: "Category:Battleships",
+        cmlimit: 500,
+        format: "json"
+    }
+
+    const url = GetURL(params)
+    const response = await fetch(url)
+    const json = await response.json()
+    const pages = json.query.categorymembers
+    let shipNames = []
+
+    for (const ship of pages) {
+        let shipName = ship.title
+
+        if (!shipName.includes("Category:")) shipNames.push(ship.title)
+    }
+
+    if (!shipNames) console.log("Ships could not be loaded.")
+
+    sessionStorage.setItem("shipNames", shipNames)
     document.getElementById("generateRowButton").disabled = false
 }
 
-async function UpdateShip(shipName, elementID) {
-    elementID = parseInt(elementID)
-
-    if (!sessionStorage.getItem(shipName + "Reload125") || !sessionStorage.getItem(shipName + "Rarity")) {
-        const params = {
-            page: shipName,
-            action: "parse",
-            prop: "wikitext",
-            format: "json"
-        }
-
-        const url = GetURL(params)
-        const response = await fetch(url)
-        const json = await response.json()
-        let page = json.parse.wikitext["*"]
-        let reload = page.match(/Reload125 = ([0-9]+)/)[1]
-
-        if (!reload) {
-            console.log("Reload could not be loaded.")
-        }
-
-        sessionStorage.setItem(shipName + "Reload125", reload)
-
-        let rarity = page.match(/Rarity = ([A-Za-z ]+)/)[1]
-
-        if (!rarity) {
-            console.log("Rarity could not be loaded.")
-        }
-
-        sessionStorage.setItem(shipName + "Rarity", rarity)
-    }
-
+function UpdateShipReloadRarity(reload, rarity, elementID) {
     let shipReload = document.getElementById("shipReload" + elementID)
-    shipReload.setAttribute("value", sessionStorage.getItem(shipName + "Reload125"))
-
+    shipReload.setAttribute("value", reload)
+    
     let shipImageBackground = document.getElementById("shipImageBackground" + elementID)
-    let rarity = sessionStorage.getItem(shipName + "Rarity")
 
     if (rarity == "Ultra Rare" || rarity == "Decisive") {shipImageBackground.setAttribute('class', 'ultra_rare')}
     else if (rarity == "Super Rare" || rarity == "Priority") {shipImageBackground.setAttribute('class', 'super_rare')}
     else if (rarity == "Elite") {shipImageBackground.setAttribute('class', 'elite')}
     else if (rarity == "Rare") {shipImageBackground.setAttribute('class', 'rare')}
-    else {shipImageBackground.setAttribute('class', 'common')}
+    else {shipImageBackground.setAttribute('class', 'common')}    
 }
 
-async function UpdateShipImage(shipName, elementID) {
+function UpdateShip(shipName, elementID) {
     elementID = parseInt(elementID)
+    const request = indexedDB.open(dbName, dbVersion)
 
-    var params = {
-        action: "query",
-        format: "json",
-        prop: "imageinfo",
-        titles: shipName,
-        generator: "images",
-        iiprop: "url",
-        gimlimit: 500
+    request.onerror = (event) => console.log(event)
+
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result
+        db.createObjectStore("ships", {keyPath: "shipName"})
+        db.createObjectStore("weapons", {keyPath: "weaponName"})
     }
 
-    url = GetURL(params)
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        let transaction = db.transaction("ships", "readwrite")
+        let objectStore = transaction.objectStore("ships")
+        const shipRequest = objectStore.get(shipName)
 
-    fetch (url)
-    .then(function(response) {
-        return response.json()
-    })
-    .then(function(response) {
-        let images = response.query.pages
+        shipRequest.onerror = (event) => console.log(event)
 
-        for (const key in images) {
-            let title = images[key].title
+        shipRequest.onsuccess = async (event) => {
+            let ship = event.target.result
 
-            if (title.includes(shipName + "ShipyardIcon.png")) {
-                let imageURL = images[key].imageinfo[0].url
+            if (ship != undefined && ship.reload != undefined && ship.rarity != undefined) {
+                UpdateShipReloadRarity(ship.reload, ship.rarity, elementID)
+                UpdateShipImage(shipName, elementID)
+                return
+            }
 
-                let icon = document.getElementById("shipImage" + elementID)
-                icon.setAttribute("src", imageURL)
-                break
+            if (ship == undefined) ship = {shipName: shipName}
+
+            const params = {
+                page: shipName,
+                action: "parse",
+                prop: "wikitext",
+                format: "json"
+            }
+    
+            const url = GetURL(params)
+            const response = await fetch(url)
+            const json = await response.json()
+            let page = json.parse.wikitext["*"]
+            ship.reload = page.match(/Reload125 = ([0-9]+)/)[1]
+            ship.rarity = page.match(/Rarity = ([A-Za-z ]+)/)[1]
+            
+            if (!ship.reload || !ship.rarity) console.log("Ship details could not be loaded.")
+
+            transaction = db.transaction("ships", "readwrite")
+            objectStore = transaction.objectStore("ships")
+            const shipUpdateRequest = objectStore.put(ship)
+
+            shipUpdateRequest.onerror = (event) => console.log(event)
+
+            shipUpdateRequest.onsuccess = (event) => {
+                console.log("Entry updated for " + shipName)
+                UpdateShipReloadRarity(ship.reload, ship.rarity, elementID)
+                UpdateShipImage(shipName, elementID)
             }
         }
-    })
+    }
 }
 
-function GetWeaponNames() {
+function UpdateShipImage(shipName, elementID) {
+    elementID = parseInt(elementID)
+    const request = indexedDB.open(dbName, dbVersion)
+
+    request.onerror = (event) => console.log(event)
+
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result
+        db.createObjectStore("ships", {keyPath: "shipName"})
+        db.createObjectStore("weapons", {keyPath: "weaponName"})
+    }
+
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        let transaction = db.transaction("ships", "readwrite")
+        let objectStore = transaction.objectStore("ships")
+        const shipRequest = objectStore.get(shipName)
+
+        shipRequest.onerror = (event) => console.log(event)
+
+        shipRequest.onsuccess = async (event) => {
+            let ship = event.target.result
+
+            if (ship != undefined && ship.shipyardImageURL != undefined) {
+                let icon = document.getElementById("shipImage" + elementID)
+                icon.setAttribute("src", ship.shipyardImageURL)
+                return
+            }
+
+            if (ship == undefined) ship = {shipName: shipName}
+            
+            const params = {
+                action: "query",
+                format: "json",
+                prop: "imageinfo",
+                titles: shipName,
+                generator: "images",
+                iiprop: "url",
+                gimlimit: 500
+            }
+            
+            let url = GetURL(params)
+            let response = await fetch(url)
+            let json = await response.json()
+            let images = json.query.pages
+
+            for (const key in images) {
+                let title = images[key].title
+    
+                if (title.includes(shipName + "ShipyardIcon.png")) {
+                    let imageURL = images[key].imageinfo[0].url
+
+                    let icon = document.getElementById("shipImage" + elementID)
+                    icon.setAttribute("src", imageURL)
+
+                    ship.shipyardImageURL = imageURL
+
+                    transaction = db.transaction("ships", "readwrite")
+                    objectStore = transaction.objectStore("ships")
+                    const shipUpdateRequest = objectStore.put(ship)
+
+                    shipUpdateRequest.onerror = (event) => console.log(event)
+
+                    shipUpdateRequest.onsuccess = (event) => {
+                        console.log("Entry updated for " + shipName)
+                    }   
+                    
+                    break                        
+                }
+            }                
+        }
+    }
+}
+
+async function GetWeaponNames() {
+    if (sessionStorage.getItem("weaponNames")) return
+
     var params = {
         action: "query",
         prop: "links",
@@ -129,57 +200,98 @@ function GetWeaponNames() {
     }
 
     let url = GetURL(params)
+    let response = await fetch(url)
+    let json = await response.json()
+    let weapons = json.query.pages[2004].links
+    let weaponNames = []
 
-    fetch (url)
-    .then(function(response) {
-        return response.json()
-    })
-    .then(function(response) {
-        let weapons = response.query.pages[2004].links
+    for (const weapon of weapons) {
+        let weaponName = weapon.title
 
-        for (const weapon of weapons) {
-            let weaponName = weapon.title
-
-            if (weaponName.includes("Quadruple") || weaponName.includes("Triple") || weaponName.includes("Twin")) {
-                weaponNames.push(weaponName)
-            }
+        if (weaponName.includes("Quadruple") || weaponName.includes("Triple") || weaponName.includes("Twin")) {
+            weaponNames.push(weaponName)
         }
-    })
+    }
+
+    sessionStorage.setItem("weaponNames", weaponNames)
+}
+
+function UpdateWeaponReloadRarity(reload, rarity, elementID) {
+    let weaponReload = document.getElementById("weaponReload" + elementID)
+    weaponReload.setAttribute("value", reload)
+
+    let weaponImageBackground = document.getElementById("weaponImageBackground" + elementID)
+
+    if (rarity == "6") {weaponImageBackground.setAttribute('class', 'ultra_rare')}
+    else if (rarity == "5") {weaponImageBackground.setAttribute('class', 'super_rare')}
+    else if (rarity == "4") {weaponImageBackground.setAttribute('class', 'elite')}
+    else if (rarity == "3") {weaponImageBackground.setAttribute('class', 'rare')}
+    else {weaponImageBackground.setAttribute('class', 'common')}    
 }
 
 function UpdateWeapon(weaponName, elementID) {
-    let i = parseInt(elementID)
+    elementID = parseInt(elementID)
+    const request = indexedDB.open(dbName, dbVersion)
 
-    var params = {
-        page: weaponName,
-        action: "parse",
-        prop: "wikitext",
-        format: "json"
+    request.onerror = (event) => console.log(event)
+
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result
+        db.createObjectStore("ships", {keyPath: "shipName"})
+        db.createObjectStore("weapons", {keyPath: "weaponName"})
     }
 
-    let url = GetURL(params)
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        let transaction = db.transaction("weapons", "readwrite")
+        let objectStore = transaction.objectStore("weapons")
+        const weaponRequest = objectStore.get(weaponName)
 
-    fetch (url)
-    .then(function(response) {
-        return response.json()
-    })
-    .then(function(response) {
-        let page = response.parse.wikitext["*"]
+        weaponRequest.onerror = (event) => console.log(event)
 
-        let reload = page.match(/RoFMax = ([0-9.]+)/)[1]
-        let weaponReload = document.getElementById("weaponReload" + i)
-        weaponReload.setAttribute("value", reload)
+        weaponRequest.onsuccess = async (event) => {
+            let weapon = event.target.result
 
-        let rarity = page.match(/Stars = ([0-9]+)/)[1]
-        let weaponImageBackground = document.getElementById("weaponImageBackground" + i)
+            if (weapon != undefined && weapon.reload != undefined && weapon.rarity != undefined) {
+                UpdateWeaponReloadRarity(weapon.reload, weapon.rarity, elementID)
+                UpdateWeaponImage(weaponName, elementID)
+                return
+            }
 
-        if (rarity == "6") {weaponImageBackground.setAttribute('class', 'ultra_rare')}
-        else if (rarity == "5") {weaponImageBackground.setAttribute('class', 'super_rare')}
-        else if (rarity == "4") {weaponImageBackground.setAttribute('class', 'elite')}
-        else if (rarity == "3") {weaponImageBackground.setAttribute('class', 'rare')}
-        else {weaponImageBackground.setAttribute('class', 'common')}
-    })
+            if (weapon == undefined) weapon = {weaponName: weaponName}
 
+            const params = {
+                page: weaponName,
+                action: "parse",
+                prop: "wikitext",
+                format: "json"
+            }
+
+            let url = GetURL(params)
+            let response = await fetch(url)
+            let json = await response.json()
+            let page = json.parse.wikitext["*"]
+            weapon.reload = page.match(/RoFMax = ([0-9.]+)/)[1]
+            weapon.rarity = page.match(/Stars = ([0-9]+)/)[1]
+
+            if (!weapon.reload || !weapon.rarity) console.log("Weapon details could not be loaded.")
+
+            transaction = db.transaction("weapons", "readwrite")
+            objectStore = transaction.objectStore("weapons")
+            const weaponUpdateRequest = objectStore.put(weapon)
+
+            weaponUpdateRequest.onerror = (event) => console.log(event)
+
+            weaponUpdateRequest.onsuccess = (event) => {
+                console.log("Entry updated for " + weaponName)
+                UpdateWeaponReloadRarity(weapon.reload, weapon.rarity, elementID)
+                UpdateWeaponImage(weaponName, elementID)
+            }
+        }
+    }
+}
+
+function UpdateWeaponImage(weaponName, elementID) {
     var params = {
         action: "query",
         format: "json",
@@ -205,7 +317,7 @@ function UpdateWeapon(weaponName, elementID) {
             if (title.match(/File:[0-9]+.png/)) {
                 let imageURL = images[key].imageinfo[0].url
 
-                let icon = document.getElementById("weaponImage" + i)
+                let icon = document.getElementById("weaponImage" + elementID)
                 icon.setAttribute("src", imageURL)
                 break
             }
