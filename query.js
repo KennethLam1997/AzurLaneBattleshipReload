@@ -181,9 +181,11 @@ function UpdateShipImage(shipName, elementID) {
                         console.log("Entry updated for " + shipName)
                     }   
                     
-                    break                        
+                    return                        
                 }
-            }                
+            }
+            
+            console.log("Ship Image could not be loaded!")
         }
     }
 }
@@ -292,35 +294,74 @@ function UpdateWeapon(weaponName, elementID) {
 }
 
 function UpdateWeaponImage(weaponName, elementID) {
-    var params = {
-        action: "query",
-        format: "json",
-        prop: "imageinfo",
-        titles: weaponName,
-        generator: "images",
-        iiprop: "url",
-        gimlimit: 500
+    elementID = parseInt(elementID)
+    const request = indexedDB.open(dbName, dbVersion)
+
+    request.onerror = (event) => console.log(event)
+
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result
+        db.createObjectStore("ships", {keyPath: "shipName"})
+        db.createObjectStore("weapons", {keyPath: "weaponName"})
     }
 
-    url = GetURL(params)
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        let transaction = db.transaction("weapons", "readwrite")
+        let objectStore = transaction.objectStore("weapons")
+        const weaponRequest = objectStore.get(weaponName)
 
-    fetch (url)
-    .then(function(response) {
-        return response.json()
-    })
-    .then(function(response) {
-        let images = response.query.pages
+        weaponRequest.onerror = (event) => console.log(event)
 
-        for (const key in images) {
-            let title = images[key].title
+        weaponRequest.onsuccess = async (event) => {
+            let weapon = event.target.result
 
-            if (title.match(/File:[0-9]+.png/)) {
-                let imageURL = images[key].imageinfo[0].url
-
+            if (weapon != undefined && weapon.weaponImage != undefined) {
                 let icon = document.getElementById("weaponImage" + elementID)
-                icon.setAttribute("src", imageURL)
-                break
+                icon.setAttribute("src", weapon.weaponImage)
+                return                
             }
+
+            if (weapon == undefined) weapon = {weaponName: weaponName}
+
+            let params = {
+                action: "query",
+                format: "json",
+                prop: "imageinfo",
+                titles: weaponName,
+                generator: "images",
+                iiprop: "url",
+                gimlimit: 500
+            }
+
+            url = GetURL(params)
+            let response = await fetch(url)
+            let json = await response.json()
+            let images = json.query.pages
+
+            for (const key in images) {
+                let title = images[key].title
+
+                if (title.match(/File:[0-9]+.png/)) {
+                    weapon.weaponImage = images[key].imageinfo[0].url
+
+                    let icon = document.getElementById("weaponImage" + elementID)
+                    icon.setAttribute("src", weapon.weaponImage)
+
+                    transaction = db.transaction("weapons", "readwrite")
+                    objectStore = transaction.objectStore("weapons")
+                    const weaponUpdateRequest = objectStore.put(weapon)
+
+                    weaponUpdateRequest.onerror = (event) => console.log(event)
+                    weaponUpdateRequest.onsuccess = (event) => {
+                        console.log("Entry updated for " + weaponName)
+                    }
+
+                    return
+                }
+            }
+
+            console.log("Weapon Image could not be loaded!")
         }
-    })
+    }
 }
