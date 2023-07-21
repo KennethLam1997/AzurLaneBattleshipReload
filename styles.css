@@ -1,22 +1,3 @@
-.common {
-    background-color: #ccc;
-}
-
-.rare {
-    background-color: #9fe8ff;
-}
-
-.elite {
-    background-color: #c4adff;
-}
-
-.super_rare {
-    background-color: #ee9;
-}
-
-.ultra_rare {
-    background-image: linear-gradient(120deg,#fbffca,#baffbf,#a7efff,#ffabff);
-}
 
 table {
     background-color: rgba(207, 207, 207, 0.767);
