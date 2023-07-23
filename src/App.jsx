@@ -1,58 +1,67 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
+import { Component } from 'react';
+import ShipTableRow from "./shipTableRow.jsx"
+import TimingGraph from './plotter.jsx';
 
-// function App() {
-//   const [count, setCount] = useState(0)
+export const ROWLIMIT = 3
 
-//   return (
-//     <>
-//       <div>
-//         <a href="https://vitejs.dev" target="_blank">
-//           <img src={viteLogo} className="logo" alt="Vite logo" />
-//         </a>
-//         <a href="https://react.dev" target="_blank">
-//           <img src={reactLogo} className="logo react" alt="React logo" />
-//         </a>
-//       </div>
-//       <h1>Vite + React</h1>
-//       <div className="card">
-//         <button onClick={() => setCount((count) => count + 1)}>
-//           count is {count}
-//         </button>
-//         <p>
-//           Edit <code>src/App.jsx</code> and save to test HMR
-//         </p>
-//       </div>
-//       <p className="read-the-docs">
-//         Click on the Vite and React logos to learn more
-//       </p>
-//     </>
-//   )
-// }
+export class App extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {}
 
-// export default App
+        for (let i = 1; i <= ROWLIMIT; i++) {
+            this.state["ship" + i] = {
+                name: '',
+                cooldown: ''
+            }
+        }
+    }
 
-import { useState, useEffect } from "react";
+    handleCallBack(i, state) {
+        this.setState({
+            ["ship" + i]: {
+                name: state.ship.name,
+                cooldown: state.cooldown
+            }
+        })
+    }
 
-const API_URL =
-  "https://azurlane.koumakan.jp/w/api.php?origin=*&action=query&list=categorymembers&cmtitle=Category%3ABattleships&cmlimit=500&format=json&fbclid=IwAR22KHRVpAZhhI8yEFElj0rFB8QMv5YOqwh90NHwskgzbOF8KM3qd5PxLdk";
+    render() {
+        let rows = []
+        let dynamicProps = {}
+        
+        for (let i = 1; i <= ROWLIMIT; i++) {
+            rows.push(
+                <ShipTableRow 
+                    key={i} 
+                    handleCallBack={function(state) {this.handleCallBack(i, state)}.bind(this)}
+                />
+            )
 
-export default function App() {
-  const [data, setData] = useState();
+            dynamicProps["ship" + i] = this.state["ship" + i]
+        }
 
-  useEffect(() => {
-    (async () => {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      console.log(data);
-    })();
-  }, []);
-  return (
-    <div className="App">
-      <h1>Hello CodeSandbox</h1>
-      <h2>Start editing to see some magic happen!</h2>
-    </div>
-  );
+        return (
+            <>
+            <table>
+                <tbody>
+                    <tr>
+                        <th colSpan={2}>
+                            Ship
+                        </th>
+                        <th colSpan={2}>
+                            Weapon
+                        </th>
+                        <th>
+                            Expected cooldown (s)
+                        </th>
+                    </tr>
+                    {rows}                
+                </tbody>
+            </table>
+            <TimingGraph {...dynamicProps}/>
+            </>
+        )
+    }
 }
+
