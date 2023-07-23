@@ -51,17 +51,16 @@ class TimingGraph extends Component {
                     end: end
                 })
 
-                start = end + cooldown
+                start += cooldown
                 end = start + this.state.barrageDuration
             }
         }
-
-        console.log(data)
 
         // Specifically for self-reference issues in d3.
         // All class reference should use self instead.
         const self = this;
 
+        // Graphing Area
         const svg = d3.select(self.ref.current)
             .append("svg")
                 .attr("width", self.fullWidth)
@@ -70,8 +69,17 @@ class TimingGraph extends Component {
                 .attr(
                     "transform",
                     "translate(" + self.margin.left + "," + self.margin.top + ")"
-                )
+                );
+
+        // Title
+        svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("x", self.width / 2)
+            .attr("y", 0 - (self.margin.top / 2))
+            .style("font-size", "20px")
+            .text("Timing Graph");
         
+        // X-Axis
         const x = d3.scaleBand()
             .range([0, self.width])
             .domain(data.map(function(d) { return d.name }))
@@ -79,8 +87,16 @@ class TimingGraph extends Component {
 
         svg.append("g")
             .attr("transform", "translate(0, " + self.height + ")")
-            .call(d3.axisBottom(x))
+            .call(d3.axisBottom(x));
+        
+        // X-Axis Label
+        svg.append("text")
+                .attr("text-anchor", "middle")
+                .attr("x", self.width / 2)
+                .attr("y", self.height + 50)
+                .text("Ships");
 
+        // Y-Axis
         const y = d3.scaleLinear()
             .domain([0, self.state.battleDuration])
             .range([self.height, 0]);
@@ -88,6 +104,15 @@ class TimingGraph extends Component {
         svg.append("g")
             .call(d3.axisLeft(y));
 
+        // Y-Axis Label
+        svg.append("g")
+            .attr("transform", "translate(-30, " + self.height / 2 + ")")
+            .append("text")
+                .attr("text-anchor", "middle")
+                .attr("transform", "rotate(-90)")
+                .text("Time (s)");
+
+        // Adding data
         svg.selectAll("rect")
             .data(data)
             .enter()
@@ -98,21 +123,22 @@ class TimingGraph extends Component {
             .attr("height", function(d) { return y(d.start) - y(d.end) })
             .attr("fill", "green");
 
-        if (this.state.helena) {
-            let start = this.state.helenaCooldown
-            let end = start + this.state.helenaDuration
+        // Adding Helena
+        if (self.state.helena) {
+            let start = self.state.helenaCooldown
+            let end = start + self.state.helenaDuration
 
-            while (start <= this.state.battleDuration) {
+            while (start <= self.state.battleDuration) {
                 svg.append("rect")
                     .attr("x", 0)
                     .attr("y", function(d) { return y(end) })
                     .attr("width", self.width)
                     .attr("height", function(d) { return y(start) - y(end) })
                     .style("fill-opacity", 0.5)
-                    .style("fill", "grey")
+                    .style("fill", "grey");
 
-                start += this.state.helenaCooldown
-                end = start + this.state.helenaDuration
+                start += self.state.helenaCooldown
+                end = start + self.state.helenaDuration
             }
         }
     }
@@ -129,7 +155,7 @@ class TimingGraph extends Component {
                         defaultValue={this.state.battleDuration}
                         onChange={function(e) {
                             this.setState({
-                                ylim: parseFloat(e.target.value)
+                                battleDuration: parseFloat(e.target.value) || 0
                             })
                         }.bind(this)}
                     >
@@ -143,7 +169,7 @@ class TimingGraph extends Component {
                         defaultValue={this.state.barrageDuration}
                         onChange={function(e) {
                             this.setState({
-                                barrageDuration: parseFloat(e.target.value)
+                                barrageDuration: parseFloat(e.target.value) || 0
                             })
                         }.bind(this)}
                     >
@@ -171,7 +197,7 @@ class TimingGraph extends Component {
                         defaultValue={this.state.helenaCooldown}
                         onChange={function(e) {
                             this.setState({
-                                helenaCooldown: parseFloat(e.target.value)
+                                helenaCooldown: parseFloat(e.target.value) || 0
                             })
                         }.bind(this)}
                     >
