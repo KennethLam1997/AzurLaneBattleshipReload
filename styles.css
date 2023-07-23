@@ -25,3 +25,8 @@ table {
     width: 1000px;
     height: 200px;  
 }
+
+.parent {
+    display: flex;
+    flex-direction: row;
+}

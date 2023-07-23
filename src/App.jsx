@@ -12,7 +12,7 @@ export class App extends Component {
         for (let i = 1; i <= ROWLIMIT; i++) {
             this.state["ship" + i] = {
                 name: '',
-                cooldown: ''
+                cooldown: 0
             }
         }
     }
@@ -21,7 +21,7 @@ export class App extends Component {
         this.setState({
             ["ship" + i]: {
                 name: state.ship.name,
-                cooldown: state.cooldown
+                cooldown: parseFloat(state.cooldown)
             }
         })
     }
