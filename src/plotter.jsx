@@ -112,17 +112,6 @@ class TimingGraph extends Component {
                 .attr("transform", "rotate(-90)")
                 .text("Time (s)");
 
-        // Adding data
-        svg.selectAll("rect")
-            .data(data)
-            .enter()
-            .append("rect")
-            .attr("x", function(d) { return x(d.name) })
-            .attr("y", function(d) { return y(d.end) })
-            .attr("width", x.bandwidth())
-            .attr("height", function(d) { return y(d.start) - y(d.end) })
-            .attr("fill", "green");
-
         // Adding Helena
         if (self.state.helena) {
             let start = self.state.helenaCooldown
@@ -131,9 +120,13 @@ class TimingGraph extends Component {
             while (start <= self.state.battleDuration) {
                 svg.append("rect")
                     .attr("x", 0)
-                    .attr("y", function(d) { return y(end) })
+                    .attr("y", function(d) { 
+                        if (end > self.state.battleDuration) return 0
+                        return y(end) })
                     .attr("width", self.width)
-                    .attr("height", function(d) { return y(start) - y(end) })
+                    .attr("height", function(d) { 
+                        if (end > self.state.battleDuration) return y(start) - y(self.state.battleDuration)
+                        return y(start) - y(end) })
                     .style("fill-opacity", 0.5)
                     .style("fill", "grey");
 
@@ -141,6 +134,62 @@ class TimingGraph extends Component {
                 end = start + self.state.helenaDuration
             }
         }
+
+        // Adding data
+        svg.selectAll()
+            .data(data)
+            .enter()
+            .append("rect")
+                .attr("id", "shipRect")
+                .attr("x", function(d) { return x(d.name) })
+                .attr("y", function(d) { 
+                    if (d.end > self.state.battleDuration) return 0
+                    return y(d.end)
+                })
+                .attr("width", x.bandwidth())
+                .attr("height", function(d) { 
+                    if (d.end > self.state.battleDuration) return y(d.start) - y(self.state.battleDuration)
+                    return y(d.start) - y(d.end) 
+                })
+                .attr("fill", "green");
+
+        // Tooltips on mouseover
+        const tooltip = d3.select(self.ref.current)
+            .append("div")
+                .style("position", "absolute")
+                .style("visibility", "hidden")
+                .style("background-color", "white")
+                .style("border", "solid")
+                .style("border-width", "1px")
+                .style("border-radius", "5px")
+                .style("padding", "10px");
+
+        const mouseover = function(event) {
+            let { name, start, end } = event.target.__data__
+            let barrageCount = 1
+
+            for (let i = 1; i <= ROWLIMIT; i++) {
+                const { name: propName, cooldown: propCooldown } = self.props["ship" + i]
+    
+                if (propName == '' || propCooldown == 0) continue
+
+                if (name == propName) {
+                    barrageCount = Math.round(start / propCooldown)
+                    break
+                }
+            }
+
+            start = start.toFixed(2)
+            end = end.toFixed(2)
+
+            tooltip.style("visibility", "visible")
+                .html(name + "'s #" + barrageCount + " barrage<br><br>" + start + "s → " + Math.min(end, self.state.battleDuration) + "s");
+        }.bind(self)
+
+        d3.selectAll("#shipRect")
+            .on("mouseover", mouseover)
+            .on("mousemove", function(event){ return tooltip.style("top", (event.pageY + 25)+"px").style("left",(event.pageX)+"px"); })
+            .on("mouseout", function() {return tooltip.style("visibility", "hidden"); });
     }
 
     render() {
