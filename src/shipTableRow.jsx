@@ -319,7 +319,7 @@ class ShipTableRow extends Component {
 
                 const weaponStatsTable = doc.getElementsByClassName('eq-stats')[0]
                 weapon.reload = weaponStatsTable.getElementsByTagName('tr')[5].getElementsByTagName('td')[0].innerHTML
-                weapon.reload = weapon.reload.match(/([0-9.]*)s\s*per volley/)[1]
+                weapon.reload = weapon.reload.match(/([0-9.]*)s\s*per\s*volley/)[1]
 
                 transaction = db.transaction("weapons", "readwrite")
                 objectStore = transaction.objectStore("weapons")

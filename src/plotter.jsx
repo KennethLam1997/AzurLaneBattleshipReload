@@ -7,9 +7,11 @@ class TimingGraph extends Component {
         super(props)
 
         this.state = {
-            ylim: 150, // in seconds.
+            battleDuration: 150, // in seconds.
             barrageDuration: 5, // in seconds
-            helena: false
+            helena: false,
+            helenaCooldown: 20, // in seconds
+            helenaDuration: 10 // in seconds
         }
         
         this.fullWidth = 700
@@ -42,7 +44,7 @@ class TimingGraph extends Component {
             start = cooldown
             end = start + this.state.barrageDuration
 
-            while (start <= this.state.ylim) {
+            while (start <= this.state.battleDuration) {
                 data.push({
                     name: name,
                     start: start,
@@ -53,6 +55,8 @@ class TimingGraph extends Component {
                 end = start + this.state.barrageDuration
             }
         }
+
+        console.log(data)
 
         // Specifically for self-reference issues in d3.
         // All class reference should use self instead.
@@ -78,7 +82,7 @@ class TimingGraph extends Component {
             .call(d3.axisBottom(x))
 
         const y = d3.scaleLinear()
-            .domain([0, self.state.ylim])
+            .domain([0, self.state.battleDuration])
             .range([self.height, 0]);
         
         svg.append("g")
@@ -93,10 +97,89 @@ class TimingGraph extends Component {
             .attr("width", x.bandwidth())
             .attr("height", function(d) { return y(d.start) - y(d.end) })
             .attr("fill", "green");
+
+        if (this.state.helena) {
+            let start = this.state.helenaCooldown
+            let end = start + this.state.helenaDuration
+
+            while (start <= this.state.battleDuration) {
+                svg.append("rect")
+                    .attr("x", 0)
+                    .attr("y", function(d) { return y(end) })
+                    .attr("width", self.width)
+                    .attr("height", function(d) { return y(start) - y(end) })
+                    .style("fill-opacity", 0.5)
+                    .style("fill", "grey")
+
+                start += this.state.helenaCooldown
+                end = start + this.state.helenaDuration
+            }
+        }
     }
 
     render() {
-        return <div ref={this.ref}></div>
+        return (
+            <>
+            <div ref={this.ref}></div>
+            <div style={{flexDirection: "column"}}>
+                <label>
+                    <b>Battle duration (s): </b>
+                    <input
+                        type="number"
+                        defaultValue={this.state.battleDuration}
+                        onChange={function(e) {
+                            this.setState({
+                                ylim: parseFloat(e.target.value)
+                            })
+                        }.bind(this)}
+                    >
+                    </input>
+                </label>
+                <br></br>
+                <label>
+                    <b>Barrage duration (s): </b>
+                    <input
+                        type="number"
+                        defaultValue={this.state.barrageDuration}
+                        onChange={function(e) {
+                            this.setState({
+                                barrageDuration: parseFloat(e.target.value)
+                            })
+                        }.bind(this)}
+                    >
+                    </input>
+                </label>
+                <br></br>
+                <label>
+                    <b>Highlight Helena Buff?: </b>
+                    <input
+                        type="checkbox"
+                        defaultChecked={this.state.helena}
+                        onChange={function(e) {
+                            this.setState({
+                                helena: e.target.checked
+                            })
+                        }.bind(this)}
+                    >
+                    </input>
+                </label>
+                <br></br>
+                <label>
+                    <b>Helena Cooldown (s): </b>
+                    <input
+                        type="number"
+                        defaultValue={this.state.helenaCooldown}
+                        onChange={function(e) {
+                            this.setState({
+                                helenaCooldown: parseFloat(e.target.value)
+                            })
+                        }.bind(this)}
+                    >
+                    </input>                    
+                </label>
+            </div>
+            </>
+        )
     }
 }
 
