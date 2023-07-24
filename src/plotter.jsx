@@ -48,7 +48,9 @@ class TimingGraph extends Component {
                 data.push({
                     name: name,
                     start: start,
-                    end: end
+                    end: end,
+                    cooldown: cooldown,
+                    index: Math.round(start / cooldown)
                 })
 
                 start += cooldown
@@ -164,30 +166,59 @@ class TimingGraph extends Component {
                 .style("border-radius", "5px")
                 .style("padding", "10px");
 
-        const mouseover = function(event) {
-            let { name, start, end } = event.target.__data__
-            let barrageCount = 1
+        const mouseover = function(event, data) {
+            let { name, start, end, cooldown, index } = event.target.__data__
+            let barrageOverlap = {}
 
-            for (let i = 1; i <= ROWLIMIT; i++) {
-                const { name: propName, cooldown: propCooldown } = self.props["ship" + i]
-    
-                if (propName == '' || propCooldown == 0) continue
+            for (let i = 0; i < data.length; i++) {
+                if (name != data[i].name) {
+                    let overlap = 0
 
-                if (name == propName) {
-                    barrageCount = Math.round(start / propCooldown)
-                    break
+                    if (end >= data[i].end) {
+                        let newEnd = Math.min(self.state.battleDuration, data[i].end)
+                        overlap = Math.max(0, Math.min(newEnd - data[i].start, newEnd - start))
+                    }
+                    else {
+                        let newEnd = Math.min(self.state.battleDuration, end)
+                        overlap = Math.max(0, Math.min(newEnd - start, newEnd - data[i].start))
+                    }
+
+                    if (overlap > 0) {
+                        barrageOverlap[data[i].name] = {
+                            start: data[i].start,
+                            end: data[i].end,
+                            overlap: overlap.toFixed(2)
+                        }
+                    }
                 }
             }
 
             start = start.toFixed(2)
             end = end.toFixed(2)
 
+            let tooltipHTML = name + "'s #" + index + " barrage<br><br>" + start + "s → " + Math.min(end, self.state.battleDuration) + "s<br><br>"
+            
+            for (let i = 1; i <= ROWLIMIT; i++) {
+                const { name: propName, cooldown: propCooldown } = this.props["ship" + i]
+
+                if (propName == '' || propCooldown == 0) continue
+
+                if (name != propName) {
+                    if (barrageOverlap[propName]) {
+                        tooltipHTML += "<div style='color:green'>Overlapping " + propName + " for " + barrageOverlap[propName].overlap + "s!</div>"
+                    }
+                    else {
+                        tooltipHTML += "<div style='color:red'>NOT Overlapping " + propName + "!</div>"
+                    }
+                }
+            }
+
             tooltip.style("visibility", "visible")
-                .html(name + "'s #" + barrageCount + " barrage<br><br>" + start + "s → " + Math.min(end, self.state.battleDuration) + "s");
+                .html(tooltipHTML);
         }.bind(self)
 
         d3.selectAll("#shipRect")
-            .on("mouseover", mouseover)
+            .on("mouseover", function(event) { return mouseover(event, data) })
             .on("mousemove", function(event){ return tooltip.style("top", (event.pageY + 25)+"px").style("left",(event.pageX)+"px"); })
             .on("mouseout", function() {return tooltip.style("visibility", "hidden"); });
     }
