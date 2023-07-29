@@ -56,94 +56,29 @@ class ShipTableRow extends Component {
         }
     }
 
-    updateShip(e) {
+    async updateShip(e) {
         const shipName = e.target.value
-        const request = indexedDB.open(DB_NAME, DB_VERSION)
-        
-        request.onerror = (event) => console.log(event)
-    
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result
-            db.createObjectStore("ships", {keyPath: "shipName"})
-            db.createObjectStore("weapons", {keyPath: "weaponName"})
-        }
 
-        request.onsuccess = function(event) {
-            const db = event.target.result;
-            let transaction = db.transaction("ships", "readwrite")
-            let objectStore = transaction.objectStore("ships")
-            const shipRequest = objectStore.get(shipName)
-    
-            shipRequest.onerror = (event) => console.log(event)
-    
-            shipRequest.onsuccess = async function(event) {
-                let ship = event.target.result
-    
-                if (
-                    ship != undefined && 
-                    ship.reload != undefined && 
-                    ship.rarity != undefined && 
-                    ship.shipyardImageURL != undefined
-                ) {
-                    this.setState((state, props) => ({
-                        ship: new Ship(
-                            shipName, 
-                            ship.rarity, 
-                            ship.shipyardImageURL, 
-                            ship.reload, 
-                            state.ship.statBonus, 
-                            state.ship.oathed
-                        ),
-                        cooldown: calculateCooldown(
-                            state.weapon.reload, 
-                            calculateOathBonus(ship.reload, state.ship.oathed), 
-                            state.ship.statBonus
-                        )
-                    }), () => {this.props.handleCallBack(this.state)})
-                    return
-                }
-    
-                if (ship == undefined) ship = {shipName: shipName}
-    
-                const response = await fetch("/azurlane/" + shipName)
-                const text = await response.text()
-                const parser = new DOMParser()
-                const doc = parser.parseFromString(text, "text/html")
+        const response = await fetch("http://localhost:3000/ship/" + encodeURIComponent(shipName))
+        const ship = await response.json()
 
-                const shipgirlImage = doc.getElementsByClassName('shipgirl-image')[0]
-                const rarity = shipgirlImage.className.match(/rarity-([0-9])/)[1]
-                ship.rarity = RARITY_MAP[rarity]
-                ship.shipyardImageURL = shipgirlImage.querySelector('img').src
+        if (!ship) throw new Error("Failed to load ship information!")
 
-                const shipstatsTable = doc.getElementsByClassName('ship-stats')[0]
-                ship.reload = shipstatsTable.getElementsByTagName('tr')[1].getElementsByTagName('td')[6].innerHTML
-                               
-                transaction = db.transaction("ships", "readwrite")
-                objectStore = transaction.objectStore("ships")
-                const shipUpdateRequest = objectStore.put(ship)
-    
-                shipUpdateRequest.onerror = (event) => console.log(event)
-    
-                shipUpdateRequest.onsuccess = function(event) {
-                    console.log("Entry updated for " + shipName)
-                    this.setState((state, props) => ({
-                        ship: new Ship(
-                            shipName, 
-                            ship.rarity, 
-                            ship.shipyardImageURL, 
-                            ship.reload, 
-                            state.ship.statBonus, 
-                            state.ship.oathed
-                        ),
-                        cooldown: calculateCooldown(
-                            state.weapon.reload, 
-                            calculateOathBonus(ship.reload, state.ship.oathed), 
-                            state.ship.statBonus
-                        )
-                    }), () => {this.props.handleCallBack(this.state)})
-                }.bind(this)
-            }.bind(this)
-        }.bind(this)
+        this.setState((state, props) => ({
+            ship: new Ship(
+                shipName, 
+                ship.rarity, 
+                ship.imgsrc, 
+                ship.reload125, 
+                state.ship.statBonus, 
+                state.ship.oathed
+            ),
+            cooldown: calculateCooldown(
+                state.weapon.reload, 
+                calculateOathBonus(ship.reload125, state.ship.oathed), 
+                state.ship.statBonus
+            )
+        }), () => {this.props.handleCallBack(this.state)})
     }
 
     generateShipImage() {
@@ -260,90 +195,27 @@ class ShipTableRow extends Component {
         )
     }
 
-    updateWeapon(e) {
+    async updateWeapon(e) {
         const weaponName = e.target.value
-        const request = indexedDB.open(DB_NAME, DB_VERSION)
-        
-        request.onerror = (event) => console.log(event)
-    
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result
-            db.createObjectStore("ships", {keyPath: "shipName"})
-            db.createObjectStore("weapons", {keyPath: "weaponName"})
-        }
 
-        request.onsuccess = function(event) {
-            const db = event.target.result;
-            let transaction = db.transaction("weapons", "readwrite")
-            let objectStore = transaction.objectStore("weapons")
-            const weaponRequest = objectStore.get(weaponName)
+        const response = await fetch("http://localhost:3000/weapon/" + encodeURIComponent(weaponName))
+        const weapon = await response.json()
 
-            weaponRequest.onerror = (event) => console.log(event)
+        if (!weapon) throw new Error("Failed to load weapon information!")
 
-            weaponRequest.onsuccess = async function (event) {
-                let weapon = event.target.result
-
-                if (
-                    weapon != undefined && 
-                    weapon.reload != undefined && 
-                    weapon.rarity != undefined && 
-                    weapon.weaponImageURL != undefined
-                ) {
-                    this.setState((state, props) => ({
-                        weapon: new Weapon(
-                            weaponName, 
-                            weapon.rarity, 
-                            weapon.weaponImageURL, 
-                            weapon.reload
-                        ),
-                        cooldown: calculateCooldown(
-                            weapon.reload, 
-                            calculateOathBonus(state.ship.reload125, state.ship.oathed), 
-                            state.ship.statBonus
-                        )
-                    }), () => {this.props.handleCallBack(this.state)})
-                    return
-                }
-
-                if (weapon == undefined) weapon = {weaponName: weaponName}
-
-                const response = await fetch("/azurlane/" + weaponName)
-                const text = await response.text()
-                const parser = new DOMParser()
-                const doc = parser.parseFromString(text, "text/html")
-
-                const weaponImage = doc.getElementsByClassName('eq-icon')[0]
-                const rarity = weaponImage.className.match(/rarity-([0-9])/)[1]
-                weapon.rarity = RARITY_MAP[rarity]
-                weapon.weaponImageURL = weaponImage.querySelector('img').src
-
-                const weaponStatsTable = doc.getElementsByClassName('eq-stats')[0]
-                weapon.reload = weaponStatsTable.getElementsByTagName('tr')[5].getElementsByTagName('td')[0].innerHTML
-                weapon.reload = weapon.reload.match(/([0-9.]*)s\s*per\s*volley/)[1]
-
-                transaction = db.transaction("weapons", "readwrite")
-                objectStore = transaction.objectStore("weapons")
-                const weaponUpdateRequest = objectStore.put(weapon)
-
-                weaponUpdateRequest.onerror = (event) => console.log(event)
-                weaponUpdateRequest.onsuccess = function (event) {
-                    console.log("Entry updated for " + weaponName)
-                    this.setState((state, props) => ({
-                        weapon: new Weapon(
-                            weaponName, 
-                            weapon.rarity, 
-                            weapon.weaponImageURL, 
-                            weapon.reload
-                        ),
-                        cooldown: calculateCooldown(
-                            weapon.reload, 
-                            calculateOathBonus(state.ship.reload125, state.ship.oathed), 
-                            state.ship.statBonus
-                        )
-                    }), () => {this.props.handleCallBack(this.state)})
-                }.bind(this)  
-            }.bind(this)
-        }.bind(this)
+        this.setState((state, props) => ({
+            weapon: new Weapon(
+                weaponName, 
+                weapon.rarity, 
+                weapon.imgsrc, 
+                weapon.reload
+            ),
+            cooldown: calculateCooldown(
+                weapon.reload, 
+                calculateOathBonus(state.ship.reload125, state.ship.oathed), 
+                state.ship.statBonus
+            )
+        }), () => {this.props.handleCallBack(this.state)})        
     }
 
     generateWeaponImage() {

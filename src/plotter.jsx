@@ -185,8 +185,6 @@ class TimingGraph extends Component {
 
                     if (overlap > 0) {
                         barrageOverlap[data[i].name] = {
-                            start: data[i].start,
-                            end: data[i].end,
                             overlap: overlap.toFixed(2)
                         }
                     }
