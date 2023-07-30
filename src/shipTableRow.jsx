@@ -1,14 +1,6 @@
-import { Component } from "react"
+const HOST = import.meta.env.VITE_BASEURL || 'https://xanderking-azurlane.onrender.com'
 
-const DB_NAME = "azurlanedb"
-const DB_VERSION = 2
-const RARITY_MAP = { 
-    '6': 'ultra_rare',
-    '5': 'super_rare',
-    '4': 'elite',
-    '3': 'rare',
-    '2': 'common'
-}
+import { Component } from "react"
 
 class Ship {
     constructor(
@@ -59,7 +51,7 @@ class ShipTableRow extends Component {
     async updateShip(e) {
         const shipName = e.target.value
 
-        const response = await fetch("http://localhost:3000/ship/" + encodeURIComponent(shipName))
+        const response = await fetch(HOST + "/ship/" + encodeURIComponent(shipName))
         const ship = await response.json()
 
         if (!ship) throw new Error("Failed to load ship information!")
@@ -198,7 +190,7 @@ class ShipTableRow extends Component {
     async updateWeapon(e) {
         const weaponName = e.target.value
 
-        const response = await fetch("http://localhost:3000/weapon/" + encodeURIComponent(weaponName))
+        const response = await fetch(HOST + "/weapon/" + encodeURIComponent(weaponName))
         const weapon = await response.json()
 
         if (!weapon) throw new Error("Failed to load weapon information!")
