@@ -6,6 +6,9 @@ if (import.meta.env.DEV) {
 
 import { useState } from "react"
 
+const DB_NAME = "azurlanedb"
+const DB_VERSION = 1
+
 function Image ({ imgsrc, rarity, width, height }) {
     return (
         <div className={rarity}>
@@ -71,12 +74,51 @@ function ShipTableRow ({ handleCallBack }) {
         newShip[prop] = value
 
         if (prop == "name") {
-            const response = await fetch(HOST + "/ship/" + encodeURIComponent(value))
-            newShip = await response.json()
-    
-            if (!newShip) throw new Error("Failed to load ship information!")
+            newShip = await new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-            setDisableShipInputs(false)
+                request.onerror = (event) => reject(event)
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result
+                    db.createObjectStore("database", {keyPath: "name"})
+                }
+
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    let transaction = db.transaction("database", "readonly")
+                    let objectStore = transaction.objectStore("database")
+                    const objectRequest = objectStore.get(value)
+
+                    objectRequest.onerror = (event) => reject(event)
+
+                    objectRequest.onsuccess = async (event) => {
+                        newShip = event.target.result
+
+                        if (newShip) {
+                            setDisableShipInputs(false)
+                            resolve(newShip)
+                            return                 
+                        }
+
+                        const response = await fetch(HOST + "/ship/" + encodeURIComponent(value))
+                        newShip = await response.json()
+
+                        if (!newShip) throw new Error("Failed to load ship information!")
+                        
+                        transaction = db.transaction("database", "readwrite")
+                        objectStore = transaction.objectStore("database")
+                        const putRequest = objectStore.put(newShip)
+
+                        putRequest.onerror = (event) => reject(event)
+
+                        putRequest.onsuccess = (event) => {
+                            setDisableShipInputs(false)
+                            resolve(newShip)
+                        }
+                    }
+                }
+            })
         }
 
         setShip(newShip)
@@ -88,12 +130,51 @@ function ShipTableRow ({ handleCallBack }) {
         newWeapon[prop] = value
 
         if (prop == "name") {
-            const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
-            newWeapon = await response.json()
-    
-            if (!newWeapon) throw new Error("Failed to load weapon information!")
+            newWeapon = await new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-            setDisableWeaponInputs(false)
+                request.onerror = (event) => reject(event)
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result
+                    db.createObjectStore("database", {keyPath: "name"})
+                }
+
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    let transaction = db.transaction("database", "readonly")
+                    let objectStore = transaction.objectStore("database")
+                    const objectRequest = objectStore.get(value)
+
+                    objectRequest.onerror = (event) => reject(event)
+
+                    objectRequest.onsuccess = async (event) => {
+                        newWeapon = event.target.result
+
+                        if (newWeapon) {
+                            setDisableWeaponInputs(false)
+                            resolve(newWeapon)
+                            return                 
+                        }
+
+                        const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
+                        newWeapon = await response.json()
+
+                        if (!newWeapon) throw new Error("Failed to load ship information!")
+                        
+                        transaction = db.transaction("database", "readwrite")
+                        objectStore = transaction.objectStore("database")
+                        const putRequest = objectStore.put(newWeapon)
+
+                        putRequest.onerror = (event) => reject(event)
+
+                        putRequest.onsuccess = (event) => {
+                            setDisableWeaponInputs(false)
+                            resolve(newWeapon)
+                        }
+                    }
+                }
+            })
         }
 
         setWeapon(newWeapon)
@@ -189,7 +270,7 @@ function ShipTableRow ({ handleCallBack }) {
 
 function calculateOathBonus(reload125, oathed) {
     if (oathed) return Math.ceil(reload125 / 1.06 * 1.12)
-    else return reload125
+    return reload125
 }
 
 function calculateCooldown(weaponReloadTime, shipReloadStat, shipStatBonus) {
