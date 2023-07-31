@@ -1,4 +1,8 @@
-const HOST = import.meta.env.VITE_BASEURL || 'https://xanderking-azurlane.onrender.com'
+let HOST = 'https://xanderking-azurlane.onrender.com'
+
+if (import.meta.env.DEV) {
+    HOST = import.meta.env.VITE_BASEURL
+}
 
 import * as ReactDOM from 'react-dom/client';
 import { App } from "./App"
