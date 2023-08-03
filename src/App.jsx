@@ -24,10 +24,17 @@ function GearBox() {
     const generateSelectors = () => {
         let equipmentBoxes = []
 
-        for (let i = 0; i < EQUIPMENTLIMIT; i++) {
+        equipmentBoxes.push(
+            <Col key={0}>
+                <EquipmentSelector key={0}/>
+            </Col>
+        )
+        
+        // Other features in dev, disable elements.
+        for (let i = 1; i < EQUIPMENTLIMIT; i++) {
             equipmentBoxes.push(
                 <Col key={i}>
-                    <EquipmentSelector key={i}/>
+                    <EquipmentSelector key={i} disabled={true}/>
                 </Col>
             )
         }
@@ -51,9 +58,10 @@ function GearBox() {
     );
 }
 
-function EquipmentSelector() {
+function EquipmentSelector({ disabled=false }) {
+    const [name, setName] = useState('')
     const [imgsrc, setImgsrc] = useState('./src/assets/equipmentAddIcon.png')
-    const [weaponRarity, setWeaponRarity] = useState('')
+    const [rarity, setRarity] = useState('')
 
     const generateOptions = () => {
         const data = sessionStorage.getItem('weaponNames').split(",")
@@ -68,16 +76,30 @@ function EquipmentSelector() {
         return options
     }
 
-    const renderTooltip = (
-        <Popover id="popover-basic" style={{maxWidth: "100%"}}>
-            <Popover.Header as="h3">Add equipment?</Popover.Header>
-            <Popover.Body >
-                <select onChange={(e) => updateWeapon(e.target.value)}>
-                    {generateOptions()}
-                </select>
-            </Popover.Body>
-        </Popover>
-    )
+    const tooltip = () => {
+        if (disabled) return (
+            <Popover id="popover-basic" style={{maxWidth: "100%"}}>
+                <Popover.Header as="h3">Feature under development!</Popover.Header>
+                <Popover.Body >
+                    Check back for any updates.
+                </Popover.Body>
+            </Popover>            
+        )
+
+        return (
+            <Popover id="popover-basic" style={{maxWidth: "100%"}}>
+                <Popover.Header as="h3">Add equipment?</Popover.Header>
+                <Popover.Body >
+                    <select 
+                        value={name}
+                        onChange={(e) => updateWeapon(e.target.value)}
+                    >
+                        {generateOptions()}
+                    </select>
+                </Popover.Body>
+            </Popover>            
+        )
+    }
 
     const generateRarity = () => {
         const stars = ({
@@ -86,7 +108,7 @@ function EquipmentSelector() {
             "elite": 4,
             "super_rare": 5,
             "ultra_rare": 6
-        })[weaponRarity]
+        })[rarity]
         let starIcons = []
 
         for (let i = 0; i < stars; i++) {
@@ -112,14 +134,15 @@ function EquipmentSelector() {
     const updateWeapon = async (value) => {
         const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
         const weapon = await response.json()
+        setName(weapon.name)
         setImgsrc(weapon.imgsrc)
-        setWeaponRarity(weapon.rarity)
+        setRarity(weapon.rarity)
     }
 
     return (
         <>
-            <div className={weaponRarity + " equipment-box"} >
-                <OverlayTrigger trigger="click" rootClose placement="bottom" overlay={renderTooltip}>
+            <div className={rarity + " equipment-box"} >
+                <OverlayTrigger trigger="click" rootClose placement="bottom" overlay={tooltip()}>
                     <div 
                         className="equipment-selection-button"
                         style={{backgroundImage: "url(" + imgsrc + ")"}}
@@ -144,11 +167,9 @@ function StatsBox({ ship }) {
     }
 
     return (
-        <div className="box"
-        >
+        <div className="box">
             <h4>Stats</h4>
-            <div className="box-inner"
-            >
+            <div className="box-inner">
                 <Form>
                     <Form.Group as={Row} className="box-sub-inner">
                         <Form.Label column style={{width: "100px", padding: "0px"}}>
@@ -186,6 +207,7 @@ function StatsBox({ ship }) {
                                 iconsrc="./src/assets/Reload_big.png"
                                 label="RLD"
                                 field={ship["level" + levelMap[level]].reload}
+                                field2={ship.bonusReload}
                             />
                         </Col>
                     </Form.Group>
@@ -259,7 +281,21 @@ function StatsBox({ ship }) {
     );
 }
 
-function SingleStatBox({ iconsrc, label, field }) {
+function SingleStatBox({ iconsrc, label, field, field2 }) {
+    const display = () => {
+        if (field2) {
+            return (
+                <>
+                <h5 className="bonus-stat-display" style={{float: "right", paddingRight: "5px"}}> +{field2}</h5> 
+                <h5 style={{float: "right"}}>{field}</h5>
+                </>
+            )
+        }
+        else {
+            return (<h5 style={{float: "right", paddingRight: "5px"}}>{field}</h5>)
+        }
+    }
+
     return (
         <InputGroup className="box-sub-inner">
             <InputGroup.Text className="stat-icon-wrapper">
@@ -269,16 +305,84 @@ function SingleStatBox({ iconsrc, label, field }) {
                 <h5 style={{float: "left"}}>
                     {label}
                 </h5>
-                <h5 style={{float: "right", paddingRight: "5px"}}>
-                    {field}
-                </h5>
+                {display()}
             </Form.Label>                            
         </InputGroup>
     )
 }
 
+function BonusStatsBox({ handleCallBack }) {
+    const [bonusReload, setBonusReload] = useState(0)
+    const [bonusPercentReload, setBonusPercentReload] = useState(0)
+
+    const update = (prop, value) => {
+        if (prop == "bonusReload") {
+            setBonusReload(value)
+            handleCallBack({
+                "bonusReload": value,
+                "bonusPercentReload": bonusPercentReload
+            })
+        }
+        else if (prop == "bonusPercentReload") {
+            setBonusPercentReload(value)
+            handleCallBack({
+                "bonusReload": bonusReload,
+                "bonusPercentReload": value
+            })
+        }
+    }
+
+    return (
+        <div className="box"
+        >
+            <h4>Bonus Stats</h4>
+            <div className="box-inner"
+            >
+                <Form>
+                    <Form.Group as={Row}>
+                        <Col>
+                            <SingleStatInputBox 
+                                iconsrc="./src/assets/Reload_big.png"
+                                label="RLD"
+                                value={bonusReload}
+                                setValue={(e) => {update("bonusReload", e.target.value)}}
+                            />
+                        </Col>
+                        <Col>
+                            <SingleStatInputBox 
+                                iconsrc="./src/assets/Reload_big.png"
+                                label="RLD (%)"
+                                value={bonusPercentReload}
+                                setValue={(e) => {update("bonusPercentReload", e.target.value)}}
+                            />
+                        </Col>
+                    </Form.Group>
+                </Form>
+            </div>
+        </div>
+    );
+}
+
+function SingleStatInputBox({ iconsrc, label, value, setValue }) {
+    return (
+        <InputGroup className="box-sub-inner">
+            <InputGroup.Text className="stat-icon-wrapper">
+                <img className="stat-icon" src={iconsrc}></img>
+            </InputGroup.Text>
+            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
+                <h5 style={{float: "left"}}>
+                    {label}
+                </h5>
+
+                <Form.Control className="stat-input" defaultValue={value} onChange={setValue}>
+                </Form.Control>
+            </Form.Label>                
+        </InputGroup>
+    )
+}
+
 function ShipBox({ handleCallBack }) {
-    const [ship, setShip] = useState({name: "???"})
+    const [ship, setShip] = useState({name: ""})
 
     const generateOptions = () => {
         const data = sessionStorage.getItem('shipNames').split(",")
@@ -297,7 +401,10 @@ function ShipBox({ handleCallBack }) {
         <Popover id="popover-basic" style={{maxWidth: "100%"}}>
             <Popover.Header as="h3">Add ship?</Popover.Header>
             <Popover.Body >
-                <select onChange={(e) => updateShip(e.target.value)}>
+                <select 
+                    value={ship.name}
+                    onChange={(e) => updateShip(e.target.value)}
+                >
                     {generateOptions()}
                 </select>
             </Popover.Body>
@@ -345,11 +452,9 @@ function ShipBox({ handleCallBack }) {
     }
 
     return (
-        <div className="box"
-        >
+        <div className="box">
             <h4>{ship.name}</h4>
-            <div className="box-inner"
-            >
+            <div className="box-inner">
                 <Form>
                     <OverlayTrigger trigger="click" rootClose placement="bottom" overlay={renderTooltip}>
                         <div className={ship.rarity} style={{position: "relative"}}>
@@ -371,7 +476,7 @@ function ShipBox({ handleCallBack }) {
 
 export default function App () {
     const [shipIdx, setShipIdx] = useState(0)
-    const [ship, setShip] = useState({ currentTab: null })
+    const [ship, setShip] = useState({})
     const shipRef = useRef()
     shipRef.current = ship
     
@@ -389,11 +494,15 @@ export default function App () {
     //     dynamicProps["ship" + i] = this.state["ship" + i]
     // }
 
-    function handleCallBack (i, state) {
+    function addShipStats (i, state) {
         // Since callbacks don't use current state, use ref.
         setShip({
             ...shipRef.current,
-            ["ship" + i]: state
+            ["ship" + i]: {
+                // Update value instead of replacing.
+                ...shipRef.current["ship" + i],
+                ...state
+            }
         })
     }
 
@@ -426,7 +535,8 @@ export default function App () {
                 >
                     <GearBox/>
                     <StatsBox ship={ship["ship" + idx]}/>
-                    <ShipBox handleCallBack={(state) => handleCallBack(idx, state)}/>
+                    <BonusStatsBox handleCallBack={(state) => addShipStats(idx, state)}/>
+                    <ShipBox handleCallBack={(state) => addShipStats(idx, state)}/>
                 </Tab>
             )
         })

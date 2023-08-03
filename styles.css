@@ -80,6 +80,24 @@ table {
     height: 25px;
 }
 
+.stat-input {
+    padding: 0px !important;
+    margin: 0px !important;
+    margin-top: 5px !important;
+    text-align: right;
+    float: right;
+    margin-right: 5px !important;
+    padding-right: 5px !important;
+    width: 50px !important;
+    font-family: azurLane;
+    color: white !important;
+    background-color: rgb(135, 139, 148) !important;
+}
+
+.bonus-stat-display {
+    color: rgb(1, 255, 1) !important;
+}
+
 .box-inner > form > div > div {
     padding: 3px;
 }
