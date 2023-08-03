@@ -1,3 +1,8 @@
+@font-face {
+    font-family: azurLane;
+    src: url('./src/assets/Lato-Bold.ttf');
+}
+
 .common {
     background-color: #ccc;
 }
@@ -29,4 +34,109 @@ table {
 .parent {
     display: flex;
     flex-direction: row;
+}
+
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.displayed {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.box {
+    background-image: linear-gradient(to right, rgb(82, 113, 173), rgb(140, 154, 189));
+    border-style: solid;
+    border-color: grey;
+    width: max-content;    
+}
+
+.box-inner {
+    background-color: rgb(172, 176, 187);
+    padding: 5px; 
+}
+
+.box-sub-inner {
+    background-color: rgb(135, 139, 148);
+}
+
+.stat-icon-wrapper {
+    background-color: rgb(70, 73, 78) !important;
+    border: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}
+
+.stat-icon {
+    margin: auto;
+    width: 30px;
+    height: 25px;
+}
+
+.box-inner > form > div > div {
+    padding: 3px;
+}
+
+.box-inner > form {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+
+.equipment-box {
+    width: max-content;
+    border-style: solid;
+    border-color: white;
+    border-width: 3px; 
+}
+
+.equipment-selection-button {
+    background-size: cover;
+    position: relative;
+    width: 80px;
+    height: 80px;
+    padding: 0px;    
+}
+
+.equipment-rarity-box {
+    padding: 0px;
+    position: absolute;
+    right: 80px;
+    top: 65px;
+    display: flex;
+    align-items: flex-start;
+}
+
+h4, h5, h6 {
+    font-family: azurLane;
+    color: white !important;
+    padding-top: 5px;
+    padding-left: 5px;
+}
+
+.ship-icon {
+    border-radius: 5px;
+    border-style: solid;
+    border-color: grey;
+    border-width: 3px; 
+    width: 192px;
+    height: 256px;
+    padding: 0px; 
+}
+
+.ship-rarity-box {
+    padding: 0px;
+    position: absolute;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    bottom: 30px;
 }

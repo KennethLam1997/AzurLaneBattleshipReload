@@ -39,7 +39,7 @@ function Selector ({ label, value, setValue, data }) {
                     onChange={setValue}
                 >
                     {options}
-                </select>
+            </select>
         </label>
     )
 }
@@ -59,7 +59,7 @@ function Input ({ label, value, setValue, type, disabled }) {
     )
 }
 
-function ShipTableRow ({ handleCallBack }) {
+export default function ShipTableRow ({ handleCallBack }) {
     const [ship, setShip] = useState({name: ''})
     const [disableShipInputs, setDisableShipInputs] = useState(true)
     const [weapon, setWeapon] = useState({name: ''})
@@ -160,7 +160,7 @@ function ShipTableRow ({ handleCallBack }) {
                         const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
                         newWeapon = await response.json()
 
-                        if (!newWeapon) throw new Error("Failed to load ship information!")
+                        if (!newWeapon) throw new Error("Failed to load weapon information!")
                         
                         transaction = db.transaction("database", "readwrite")
                         objectStore = transaction.objectStore("database")
@@ -187,8 +187,8 @@ function ShipTableRow ({ handleCallBack }) {
         setCooldown(newCooldown)
         
         handleCallBack({
-            ship: newShip, 
-            weapon: newWeapon, 
+            name: newShip.name,
+            imgsrc: newShip.imgsrc_chibi,
             cooldown: newCooldown
         })
     }
@@ -237,18 +237,18 @@ function ShipTableRow ({ handleCallBack }) {
             </td>
             <td>
                 <Image
-                        imgsrc={weapon.imgsrc}
-                        rarity={weapon.rarity}
-                        width={128}
-                        height={128}
+                    imgsrc={weapon.imgsrc}
+                    rarity={weapon.rarity}
+                    width={128}
+                    height={128}
                 />
             </td>
             <td>
                 <Selector
-                        label="Name"
-                        value={weapon.name}
-                        setValue={(e) => updateWeapon("name", e.target.value)}
-                        data={weaponNames}
+                    label="Name"
+                    value={weapon.name}
+                    setValue={(e) => updateWeapon("name", e.target.value)}
+                    data={weaponNames}
                 />
                 <br></br>
                 <Input
@@ -280,5 +280,3 @@ function calculateCooldown(weaponReloadTime, shipReloadStat, shipStatBonus) {
     const cooldown = String((weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + shipStatBonus) + 100))).toFixed(2))
     return cooldown
 }
-
-export default ShipTableRow

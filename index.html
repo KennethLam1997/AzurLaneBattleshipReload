@@ -3,14 +3,43 @@
 <html>
     <head>
         <title>Azur Lane Battleship Calculator</title>
+
         <link rel="stylesheet" href="styles.css">
         <script type='module' src="./src/main.jsx"></script>
         <base href="./">
     </head>
 
     <body>
-        <h1 style="text-align:center">Azur Lane Battleship Calculator</h1>
-        <div id="root" class="parent">
+        <div id="loader" class="centered" style="visibility: hidden;">
+            <img src="src/assets/new_jersey_meme.jpg" width="222" height="192" class="displayed">
+            <br></br>
+            <h1 style="text-align:center">Loading database. Please wait...</h1>
         </div>
+
+        <h1 style="text-align:center">Azur Lane Battleship Calculator</h1>
+
+        <div id="root" class="parent"></div>
+
+        <!-- <ul class="nav nav-tabs">
+            <li class="active">
+                <a data-toggle="tab" href="#home">
+                    <img src="https://azurlane.netojuu.com/images/0/07/New_JerseyChibi.png">
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#tab2">
+                    <img src="https://azurlane.netojuu.com/images/e/e6/MusashiChibi.png">
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div id="home" class="tab-pane fade in active">
+                <div id="root" class="parent">
+                </div>
+            </div>
+            <div id="tab2" class="tab-pane fade">
+            </div>
+        </div> -->
     </body>
 </html>
