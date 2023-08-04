@@ -143,7 +143,7 @@ export function StatsBox({ ship, handleCallBack }) {
 
     // For pesky undefined ship state errors.
     if (ship == undefined) { 
-        ship = {level1: {}, level100: {}, level120: {}, level125: {}} 
+        ship = {level: 1, level1: {}, level100: {}, level120: {}, level125: {}} 
     }
 
     return (
@@ -154,7 +154,7 @@ export function StatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row} className="box-sub-inner">
                         <Form.Label column style={{width: "100px", padding: "0px"}}>
                             <h4>
-                                Level: {levelMap[level]}
+                                Level: {ship.level}
                             </h4>
                         </Form.Label>
                         <Col>
@@ -172,13 +172,13 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox 
                                 iconsrc="./src/assets/Health_big.png"
                                 label="HP"
-                                field={ship["level" + levelMap[level]].health}
+                                field={ship["level" + ship.level].health}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 iconsrc="./src/assets/armor_big.png"
-                                label={ship["level" + levelMap[level]].armor}
+                                label={ship["level" + ship.level].armor}
                                 field=""
                             />
                         </Col>
@@ -186,7 +186,7 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox 
                                 iconsrc="./src/assets/Reload_big.png"
                                 label="RLD"
-                                field={ship["level" + levelMap[level]].reload}
+                                field={ship["level" + ship.level].reload}
                                 field2={ship.bonusReload}
                             />
                         </Col>
@@ -196,21 +196,22 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox 
                                 iconsrc="./src/assets/Firepower_big.png"
                                 label="FP"
-                                field={ship["level" + levelMap[level]].firepower}
+                                field={ship["level" + ship.level].firepower}
+                                field2={ship.weapon["enhance" + ship.weapon.enhance].firepower}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 iconsrc="./src/assets/Torpedo_big.png"
                                 label="TRP"
-                                field={ship["level" + levelMap[level]].torpedo}
+                                field={ship["level" + ship.level].torpedo}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 iconsrc="./src/assets/Evasion_big.png"
                                 label="EVA"
-                                field={ship["level" + levelMap[level]].evasion}
+                                field={ship["level" + ship.level].evasion}
                             />
                         </Col>
                     </Form.Group>
@@ -219,21 +220,22 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox 
                                 iconsrc="./src/assets/Antiair_big.png"
                                 label="AA"
-                                field={ship["level" + levelMap[level]].antiair}
+                                field={ship["level" + ship.level].antiair}
+                                field2={ship.weapon["enhance" + ship.weapon.enhance].antiair}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 iconsrc="./src/assets/Aviation_big.png"
                                 label="AVI"
-                                field={ship["level" + levelMap[level]].aviation}
+                                field={ship["level" + ship.level].aviation}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 iconsrc="./src/assets/Consumption_big.png"
                                 label="Cost"
-                                field={ship["level" + levelMap[level]].consumption}
+                                field={ship["level" + ship.level].consumption}
                             />
                         </Col>
                     </Form.Group>
@@ -242,7 +244,7 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox 
                                 iconsrc="./src/assets/ASW_big.png"
                                 label="ASW"
-                                field={ship["level" + levelMap[level]].asw}
+                                field={ship["level" + ship.level].asw}
                             />
                         </Col>
                     </Form.Group>
@@ -252,7 +254,7 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox 
                                 iconsrc="./src/assets/Luck_big.png"
                                 label="LCK"
-                                field={ship["level" + levelMap[level]].luck}
+                                field={ship["level" + ship.level].luck}
                             />
                         </Col>
                     </Form.Group>

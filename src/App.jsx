@@ -56,6 +56,7 @@ export default function App () {
     function addNewTab() {
         let newShip = {...ship}
         newShip["ship" + (shipIdx)] = {
+            level: 1,
             level1: {}, 
             level100: {}, 
             level120: {}, 
@@ -63,7 +64,8 @@ export default function App () {
             weapon: {
                 imgsrc: './src/assets/equipmentAddIcon.png',
                 enhance0: {}, 
-                enhance10: {}
+                enhance10: {},
+                enhance: 0
             }
         } 
 
