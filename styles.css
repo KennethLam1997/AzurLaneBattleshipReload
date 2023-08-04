@@ -36,11 +36,26 @@ table {
     flex-direction: row;
 }
 
-.centered {
-    position: fixed;
+.centered-both {
+    margin: 0;
+    position: absolute !important;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+.centered-horizontal {
+    margin: 0;
+    position: relative !important;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.centered-vertical {
+    margin: 0;
+    position: relative !important;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .displayed {
@@ -144,7 +159,6 @@ table {
     display: flex;
     align-items: flex-start;
     top: 45px;
-
 }
 
 h4, h5, h6 {
@@ -172,4 +186,68 @@ h4, h5, h6 {
     align-items: flex-start;
     justify-content: center;
     bottom: 30px;
+}
+
+.ship-icon-label-box {
+    padding: 0px;
+    background-color: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    position: absolute;
+    top: 200px;
+    left: 0px !important;
+    right: 0px !important;
+}
+
+.ship-icon-label {
+    font-family: azurLane;
+    width: 100%;
+    font-size: large;
+    color: white;
+    display: flex;
+    justify-content: center;
+}
+
+.ship-icon-label-box img {
+    position: absolute;
+}
+
+.main-container {
+    width: 1200px !important;
+    margin: 10px auto 0;
+    display: block;
+}
+
+.ship-full-image-container {
+    position: absolute;
+    width: 1200px;
+    overflow: hidden;
+}
+
+.ship-full-image-container img {
+    z-index: -1;
+    margin: -500px 0 0 -650px;
+}
+
+.content-container {
+    display: block;
+    overflow: auto;
+}
+
+.left-container {
+    float: left;
+    height: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 600px;
+}
+
+.right-container {
+    float: right;
+    height: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 600px;
+    margin-left: auto;
 }

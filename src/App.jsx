@@ -42,7 +42,7 @@ function GearBox() {
     }
 
     return (
-        <div className="box">
+        <div className="box centered-horizontal">
             <h4>Gear</h4>
             <div className="box-inner">
                 <Form>
@@ -163,9 +163,15 @@ function EquipmentSelector({ disabled=false }) {
     )
 }
 
-function StatsBox({ ship }) {
+function StatsBox({ ship, handleCallBack }) {
     const [level, setLevel] = useState(0)
     const levelMap = [1, 100, 120, 125]
+
+    useEffect(() => {
+        handleCallBack({
+            "level": levelMap[level]
+        })
+    }, [level])
 
     // For pesky undefined ship state errors.
     if (ship == undefined) { 
@@ -173,7 +179,7 @@ function StatsBox({ ship }) {
     }
 
     return (
-        <div className="box">
+        <div className="box centered-horizontal">
             <h4>Stats</h4>
             <div className="box-inner">
                 <Form>
@@ -331,7 +337,7 @@ function BonusStatsBox({ handleCallBack }) {
     }, [bonusReload, bonusPercentReload, isOathed])
 
     return (
-        <div className="box">
+        <div className="box centered-horizontal">
             <h4>Bonus Stats</h4>
             <div className="box-inner">
                 <Form>
@@ -395,13 +401,7 @@ function SingleStatInputBox({ iconsrc, label, value, setValue }) {
     )
 }
 
-function ShipBox({ handleCallBack }) {
-    const [ship, setShip] = useState({name: ""})
-
-    useEffect(() => {
-        handleCallBack(ship)
-    }, [ship])
-
+function ShipBox({ ship, handleCallBack }) {
     const generateOptions = () => {
         const data = sessionStorage.getItem('shipNames').split(",")
         let options = []
@@ -435,7 +435,7 @@ function ShipBox({ handleCallBack }) {
 
         if (!newShip) throw new Error("Failed to load ship information!")
 
-        setShip(newShip)
+        handleCallBack(newShip)
     }
 
     const generateRarity = () => {
@@ -457,7 +457,8 @@ function ShipBox({ handleCallBack }) {
                     height="30px"
                     style={{
                         position: "absolute",
-                        left: i * 20 + "px",
+                        // Annoying formula centering for stars.
+                        left: (i * 20 + ((6 - stars) * 10 + 30)) + "px",
                         zIndex: i
                     }}
                 >
@@ -468,25 +469,49 @@ function ShipBox({ handleCallBack }) {
         return starIcons
     }
 
+    const generateLevel = () => {
+        if (ship.level) return "Lv." + ship.level
+        else if (ship.name) return "Lv.1"
+        else return ""
+    }
+
     return (
-        <div className="box">
-            <h4>{ship.name}</h4>
-            <div className="box-inner">
-                <Form>
-                    <OverlayTrigger trigger="click" rootClose placement="right" overlay={renderTooltip}>
-                        <div className={ship.rarity} style={{position: "relative"}}>
-                            <div 
-                                className="ship-icon"
-                                style={{backgroundImage: "url(" + ship.imgsrc + ")"}}
-                            >
-                                <div className="ship-rarity-box">
-                                    {generateRarity()}
-                                </div>
+        <div className="centered-both">
+            <OverlayTrigger trigger="click" rootClose placement="right" overlay={renderTooltip}>
+                <div className={ship.rarity} style={{position: "relative"}}>
+                    <div 
+                        className="ship-icon"
+                        style={{backgroundImage: "url(" + ship.imgsrc + ")"}}
+                    >
+                        <div className="ship-rarity-box">
+                            {generateRarity()}
+                        </div>
+                        <div className="ship-icon-label-box">
+                            <div className="ship-icon-label">
+                                {ship.name}
                             </div>
                         </div>
-                    </OverlayTrigger>
-                </Form>
-            </div>
+                        <div className="ship-icon-label-box" 
+                            style={{
+                                top: "5px",
+                                height: "32px"
+                            }}
+                        >
+                            <img src="./src/assets/BB.png"></img>
+                            <div 
+                                className="ship-icon-label" 
+                                style={{
+                                    justifyContent: "right", 
+                                    paddingRight: "20px",
+                                    transform: "scale(1.2, 1.4)"
+                                }}
+                            >
+                                {generateLevel()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </OverlayTrigger>
         </div>
     )
 }
@@ -531,12 +556,7 @@ export default function App () {
 
     function addNewTab() {
         let newShip = {...ship}
-        newShip["ship" + (shipIdx)] = {
-            name: '', 
-            cooldown: 0, 
-            imgsrc: './src/assets/unknown_ship_icon.png',
-            level1: {}
-        }
+        newShip["ship" + (shipIdx)] = {level1: {}}
 
         setShip(newShip)
         setShipIdx(shipIdx + 1)
@@ -550,16 +570,35 @@ export default function App () {
                     eventKey={"ship" + idx} 
                     title={<span><img src={ship["ship" + idx].imgsrc_chibi} width={75} height={70}/></span>}
                 >
-                    <GearBox/>
-                    <StatsBox ship={ship["ship" + idx]}/>
-                    <BonusStatsBox handleCallBack={(state) => addShipStats(idx, state)}/>
-                    <ShipBox handleCallBack={(state) => addShipStats(idx, state)}/>
+                    <div className="main-container">
+                        <div className="content-container">
+                            <div className="left-container" style={{height: "450px"}}>
+                                <ShipBox 
+                                    ship={ship["ship" + idx]} 
+                                    handleCallBack={(state) => addShipStats(idx, state)}
+                                />
+                            </div>
+                            <div className="right-container">
+                                <StatsBox 
+                                    ship={ship["ship" + idx]} 
+                                    handleCallBack={(state) => addShipStats(idx, state)}
+                                />
+                                <BonusStatsBox handleCallBack={(state) => addShipStats(idx, state)}/>
+                            </div>
+                        </div>
+
+                        <div className="content-container">
+                            <div className="left-container">
+                                <GearBox/>
+                            </div>
+                        </div>
+                    </div>
                 </Tab>
             )
         })
 
         return (
-            <div style={{ display: 'block', width: 700, padding: 30 }}>
+            <div className="main-container">
                 <Tabs
                     defaultActiveKey="ship0"
                     className="mb-3"
