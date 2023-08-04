@@ -172,10 +172,12 @@ h4, h5, h6 {
     border-radius: 5px;
     border-style: solid;
     border-color: grey;
-    border-width: 3px; 
+    border-width: 2px; 
     width: 192px;
     height: 256px;
-    padding: 0px; 
+    padding: 0px;
+    border-top-width: 8px;
+    border-bottom-width: 8px;
 }
 
 .ship-rarity-box {
@@ -191,11 +193,12 @@ h4, h5, h6 {
 .ship-icon-label-box {
     padding: 0px;
     background-color: rgba(0, 0, 0, 0.7);
-    width: 100%;
+    width: 98%;
     position: absolute;
     top: 200px;
     left: 0px !important;
     right: 0px !important;
+    margin-left: 2px;
 }
 
 .ship-icon-label {
@@ -250,4 +253,8 @@ h4, h5, h6 {
     overflow-y: auto;
     width: 600px;
     margin-left: auto;
+}
+
+hr {
+    margin: 5px !important;
 }
