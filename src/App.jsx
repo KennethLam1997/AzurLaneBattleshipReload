@@ -1,8 +1,7 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import 'bootstrap/dist/css/bootstrap.css';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
@@ -43,11 +42,9 @@ function GearBox() {
     }
 
     return (
-        <div className="box"
-        >
+        <div className="box">
             <h4>Gear</h4>
-            <div className="box-inner"
-            >
+            <div className="box-inner">
                 <Form>
                     <Row>
                         {generateSelectors()}
@@ -59,9 +56,7 @@ function GearBox() {
 }
 
 function EquipmentSelector({ disabled=false }) {
-    const [name, setName] = useState('')
-    const [imgsrc, setImgsrc] = useState('./src/assets/equipmentAddIcon.png')
-    const [rarity, setRarity] = useState('')
+    const [weapon, setWeapon] = useState({imgsrc: './src/assets/equipmentAddIcon.png'})
 
     const generateOptions = () => {
         const data = sessionStorage.getItem('weaponNames').split(",")
@@ -89,13 +84,16 @@ function EquipmentSelector({ disabled=false }) {
         return (
             <Popover id="popover-basic" style={{maxWidth: "100%"}}>
                 <Popover.Header as="h3">Add equipment?</Popover.Header>
-                <Popover.Body >
+                <Popover.Body>
                     <select 
-                        value={name}
+                        value={weapon.name}
                         onChange={(e) => updateWeapon(e.target.value)}
                     >
                         {generateOptions()}
                     </select>
+                    <div>
+
+                    </div>
                 </Popover.Body>
             </Popover>            
         )
@@ -108,7 +106,7 @@ function EquipmentSelector({ disabled=false }) {
             "elite": 4,
             "super_rare": 5,
             "ultra_rare": 6
-        })[rarity]
+        })[weapon.rarity]
         let starIcons = []
 
         for (let i = 0; i < stars; i++) {
@@ -131,24 +129,32 @@ function EquipmentSelector({ disabled=false }) {
         return starIcons
     }
 
+    const generateLevel = () => {
+        if (weapon.level) return "+" + weapon.level
+    }
+
     const updateWeapon = async (value) => {
         const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
-        const weapon = await response.json()
-        setName(weapon.name)
-        setImgsrc(weapon.imgsrc)
-        setRarity(weapon.rarity)
+        const newWeapon = await response.json()
+        setWeapon({
+            ...newWeapon,
+            level: 10
+        })
     }
 
     return (
         <>
-            <div className={rarity + " equipment-box"} >
-                <OverlayTrigger trigger="click" rootClose placement="bottom" overlay={tooltip()}>
+            <div className={weapon.rarity + " equipment-box"} >
+                <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
                     <div 
                         className="equipment-selection-button"
-                        style={{backgroundImage: "url(" + imgsrc + ")"}}
+                        style={{backgroundImage: "url(" + weapon.imgsrc + ")"}}
                     >
                         <div className="equipment-rarity-box">
                             {generateRarity()}
+                        </div>
+                        <div className="equipment-level-box">
+                            {generateLevel()}
                         </div>
                     </div>
                 </OverlayTrigger>
@@ -314,30 +320,20 @@ function SingleStatBox({ iconsrc, label, field, field2 }) {
 function BonusStatsBox({ handleCallBack }) {
     const [bonusReload, setBonusReload] = useState(0)
     const [bonusPercentReload, setBonusPercentReload] = useState(0)
+    const [isOathed, setOathed] = useState(false)
 
-    const update = (prop, value) => {
-        if (prop == "bonusReload") {
-            setBonusReload(value)
-            handleCallBack({
-                "bonusReload": value,
-                "bonusPercentReload": bonusPercentReload
-            })
-        }
-        else if (prop == "bonusPercentReload") {
-            setBonusPercentReload(value)
-            handleCallBack({
-                "bonusReload": bonusReload,
-                "bonusPercentReload": value
-            })
-        }
-    }
+    useEffect(() => {
+        handleCallBack({
+            "bonusReload": bonusReload,
+            "bonusPercentReload": bonusPercentReload,
+            "isOathed": isOathed
+        })
+    }, [bonusReload, bonusPercentReload, isOathed])
 
     return (
-        <div className="box"
-        >
+        <div className="box">
             <h4>Bonus Stats</h4>
-            <div className="box-inner"
-            >
+            <div className="box-inner">
                 <Form>
                     <Form.Group as={Row}>
                         <Col>
@@ -345,7 +341,7 @@ function BonusStatsBox({ handleCallBack }) {
                                 iconsrc="./src/assets/Reload_big.png"
                                 label="RLD"
                                 value={bonusReload}
-                                setValue={(e) => {update("bonusReload", e.target.value)}}
+                                setValue={(e) => setBonusReload(e.target.value)}
                             />
                         </Col>
                         <Col>
@@ -353,8 +349,26 @@ function BonusStatsBox({ handleCallBack }) {
                                 iconsrc="./src/assets/Reload_big.png"
                                 label="RLD (%)"
                                 value={bonusPercentReload}
-                                setValue={(e) => {update("bonusPercentReload", e.target.value)}}
+                                setValue={(e) => setBonusPercentReload(e.target.value)}
                             />
+                        </Col>
+                        <Col>
+                            <InputGroup className="box-sub-inner">
+                                <InputGroup.Text className="stat-icon-wrapper">
+                                    <img className="stat-icon" src="./src/assets/Health_big.png"></img>
+                                </InputGroup.Text>
+                                <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
+                                    <h5 style={{float: "left"}}>
+                                        Oathed?
+                                    </h5>
+                                    <Form.Check 
+                                        className="stat-input" 
+                                        type="switch" 
+                                        defaultValue={isOathed} 
+                                        onChange={(e) => setOathed(e.target.checked)}>
+                                    </Form.Check>
+                                </Form.Label>                
+                            </InputGroup>
                         </Col>
                     </Form.Group>
                 </Form>
@@ -383,6 +397,10 @@ function SingleStatInputBox({ iconsrc, label, value, setValue }) {
 
 function ShipBox({ handleCallBack }) {
     const [ship, setShip] = useState({name: ""})
+
+    useEffect(() => {
+        handleCallBack(ship)
+    }, [ship])
 
     const generateOptions = () => {
         const data = sessionStorage.getItem('shipNames').split(",")
@@ -418,7 +436,6 @@ function ShipBox({ handleCallBack }) {
         if (!newShip) throw new Error("Failed to load ship information!")
 
         setShip(newShip)
-        handleCallBack(newShip)
     }
 
     const generateRarity = () => {
@@ -456,7 +473,7 @@ function ShipBox({ handleCallBack }) {
             <h4>{ship.name}</h4>
             <div className="box-inner">
                 <Form>
-                    <OverlayTrigger trigger="click" rootClose placement="bottom" overlay={renderTooltip}>
+                    <OverlayTrigger trigger="click" rootClose placement="right" overlay={renderTooltip}>
                         <div className={ship.rarity} style={{position: "relative"}}>
                             <div 
                                 className="ship-icon"
