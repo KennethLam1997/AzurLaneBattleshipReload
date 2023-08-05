@@ -1,3 +1,8 @@
+@font-face {
+    font-family: azurLane;
+    src: url('./src/assets/Lato-Bold.ttf');
+}
+
 .common {
     background-color: #ccc;
 }
@@ -29,4 +34,245 @@ table {
 .parent {
     display: flex;
     flex-direction: row;
+}
+
+.centered-both {
+    margin: 0;
+    position: absolute !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.centered-horizontal {
+    margin: 0;
+    position: relative !important;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.centered-horizontal-ship-icon {
+    margin: 0;
+    position: absolute !important;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.centered-vertical {
+    margin: 0;
+    position: relative !important;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.displayed {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.box {
+    background-image: linear-gradient(to right, rgb(82, 113, 173), rgb(140, 154, 189));
+    border-style: solid;
+    border-color: grey;
+    width: max-content;    
+}
+
+.box-inner {
+    background-color: rgb(172, 176, 187);
+    padding: 5px; 
+}
+
+.box-sub-inner {
+    background-color: rgb(135, 139, 148);
+}
+
+.stat-icon-wrapper {
+    background-color: rgb(70, 73, 78) !important;
+    border: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}
+
+.stat-icon {
+    margin: auto;
+    width: 30px;
+    height: 25px;
+}
+
+.stat-input {
+    padding: 0px !important;
+    margin: 0px !important;
+    margin-top: 5px !important;
+    text-align: right;
+    float: right;
+    margin-right: 5px !important;
+    padding-right: 5px !important;
+    width: 50px !important;
+    font-family: azurLane;
+    color: white !important;
+    background-color: rgb(135, 139, 148) !important;
+}
+
+.bonus-stat-display {
+    color: rgb(1, 255, 1) !important;
+}
+
+.box-inner > form > div > div {
+    padding: 3px;
+}
+
+.box-inner > form {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+
+.equipment-box {
+    width: max-content;
+    border-style: solid;
+    border-color: white;
+    border-width: 3px; 
+}
+
+.equipment-selection-button {
+    background-size: cover;
+    position: relative;
+    width: 80px;
+    height: 80px;
+    padding: 0px;    
+}
+
+.equipment-rarity-box {
+    padding: 0px;
+    position: absolute;
+    right: 80px;
+    top: 65px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.equipment-level-box {
+    padding: 0px;
+    background-color: black;
+    font-family: azurLane;
+    font-size: small;
+    color: white;
+    opacity: 0.7;
+    width: fit-content;
+    position: absolute;
+    display: flex;
+    align-items: flex-start;
+    top: 45px;
+}
+
+h4, h5, h6 {
+    font-family: azurLane;
+    color: white !important;
+    padding-top: 5px;
+    padding-left: 5px;
+}
+
+.min-label {
+    min-height: 34px;
+}
+
+.ship-icon {
+    border-style: solid;
+    border-color: grey;
+    border-width: 2px; 
+    width: 192px;
+    height: 256px;
+    padding: 0px;
+    border-top-width: 8px;
+    border-bottom-width: 8px;
+}
+
+.ship-rarity-box {
+    padding: 0px;
+    position: absolute;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    bottom: 30px;
+}
+
+.ship-icon-label-box {
+    padding: 0px;
+    background-color: rgba(0, 0, 0, 0.7);
+    width: 98%;
+    position: absolute;
+    top: 200px;
+    left: 0px !important;
+    right: 0px !important;
+    margin-left: 2px;
+}
+
+.ship-icon-label {
+    font-family: azurLane;
+    width: 100%;
+    font-size: large;
+    color: white;
+    display: flex;
+    justify-content: center;
+}
+
+.ship-icon-label-box img {
+    position: absolute;
+}
+
+.main-container {
+    background-color: rgba(0, 0, 0, 0.3);
+    height: 99vh !important;
+    width: 1172px !important;
+    margin: 10px auto 0;
+    display: block;
+}
+
+.ship-full-image-container {
+    position: absolute;
+    width: 1200px;
+    overflow: hidden;
+}
+
+.ship-full-image-container img {
+    z-index: -1;
+    margin: -500px 0 0 -650px;
+}
+
+.content-container {
+    display: block;
+    overflow: auto;
+}
+
+.left-container {
+    float: left;
+    height: 600px;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 522px;
+}
+
+.right-container {
+    float: right;
+    height: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 650px;
+    margin-left: auto;
+}
+
+hr {
+    margin: 5px !important;
+}
+
+body {
+    background-image: url("./src/assets/academy_background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
 }

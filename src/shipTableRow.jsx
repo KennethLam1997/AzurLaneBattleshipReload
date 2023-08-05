@@ -1,306 +1,276 @@
-const HOST = import.meta.env.VITE_BASEURL || 'https://xanderking-azurlane.onrender.com'
+let HOST = 'https://xanderking-azurlane.onrender.com'
 
-import { Component } from "react"
-
-class Ship {
-    constructor(
-        name = '', 
-        rarity = '', 
-        imgsrc = '', 
-        reload125 = '', 
-        statBonus = '', 
-        oathed = ''
-    ) {
-        this.name = name
-        this.rarity = rarity
-        this.imgsrc = imgsrc
-        this.reload125 = reload125
-        this.statBonus = statBonus
-        this.oathed = oathed
-    }
+if (import.meta.env.DEV) {
+    HOST = import.meta.env.VITE_BASEURL
 }
 
-class Weapon {
-    constructor(
-        name = '', 
-        rarity = '', 
-        imgsrc = '', 
-        reload = ''
-    ) {
-        this.name = name
-        this.rarity = rarity
-        this.imgsrc = imgsrc
-        this.reload = reload
-    }
+import { useState } from "react"
+
+const DB_NAME = "azurlanedb"
+const DB_VERSION = 1
+
+function Image ({ imgsrc, rarity, width, height }) {
+    return (
+        <div className={rarity}>
+            <img
+                width={width}
+                height={height}
+                src={imgsrc}
+            >
+            </img>
+        </div>     
+    )
 }
 
+function Selector ({ label, value, setValue, data }) {
+    let options = []
 
-class ShipTableRow extends Component {
-    constructor(props) {
-        super(props)
+    data.forEach((ele) => {
+        options.push(<option key={ele} value={ele}>{ele}</option>)
+    })
 
-        this.rowId = this.props.rowId
+    options.push(<option key="" value="" defaultValue={true} disabled hidden></option>)
 
-        this.state = {
-            ship: new Ship(),
-            weapon: new Weapon(),
-            cooldown: ''
+    return (
+        <label>
+            <b>{label}: </b>
+            <select 
+                    value={value}
+                    onChange={setValue}
+                >
+                    {options}
+            </select>
+        </label>
+    )
+}
+
+function Input ({ label, value, setValue, type, disabled }) {
+    return (
+        <label>
+            <b>{label}: </b>
+            <input
+                type={type}
+                defaultValue={value}
+                onChange={setValue}
+                disabled={disabled}
+            >
+            </input>
+        </label>
+    )
+}
+
+export default function ShipTableRow ({ handleCallBack }) {
+    const [ship, setShip] = useState({name: ''})
+    const [disableShipInputs, setDisableShipInputs] = useState(true)
+    const [weapon, setWeapon] = useState({name: ''})
+    const [disableWeaponInputs, setDisableWeaponInputs] = useState(true)
+    const [cooldown, setCooldown] = useState('')
+
+    const shipNames = sessionStorage.getItem("shipNames").split(",")
+    const weaponNames = sessionStorage.getItem("weaponNames").split(",")
+
+    async function updateShip(prop, value) {
+        let newShip = {...ship}
+        newShip[prop] = value
+
+        if (prop == "name") {
+            newShip = await new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+                request.onerror = (event) => reject(event)
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result
+                    db.createObjectStore("database", {keyPath: "name"})
+                }
+
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    let transaction = db.transaction("database", "readonly")
+                    let objectStore = transaction.objectStore("database")
+                    const objectRequest = objectStore.get(value)
+
+                    objectRequest.onerror = (event) => reject(event)
+
+                    objectRequest.onsuccess = async (event) => {
+                        newShip = event.target.result
+
+                        if (newShip) {
+                            setDisableShipInputs(false)
+                            resolve(newShip)
+                            return                 
+                        }
+
+                        const response = await fetch(HOST + "/ship/" + encodeURIComponent(value))
+                        newShip = await response.json()
+
+                        if (!newShip) throw new Error("Failed to load ship information!")
+                        
+                        transaction = db.transaction("database", "readwrite")
+                        objectStore = transaction.objectStore("database")
+                        const putRequest = objectStore.put(newShip)
+
+                        putRequest.onerror = (event) => reject(event)
+
+                        putRequest.onsuccess = (event) => {
+                            setDisableShipInputs(false)
+                            resolve(newShip)
+                        }
+                    }
+                }
+            })
         }
+
+        setShip(newShip)
+        updateCooldown(newShip, weapon)
     }
 
-    async updateShip(e) {
-        const shipName = e.target.value
+    async function updateWeapon(prop, value) {
+        let newWeapon = {...weapon}
+        newWeapon[prop] = value
 
-        const response = await fetch(HOST + "/ship/" + encodeURIComponent(shipName))
-        const ship = await response.json()
+        if (prop == "name") {
+            newWeapon = await new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-        if (!ship) throw new Error("Failed to load ship information!")
+                request.onerror = (event) => reject(event)
 
-        this.setState((state, props) => ({
-            ship: new Ship(
-                shipName, 
-                ship.rarity, 
-                ship.imgsrc, 
-                ship.reload125, 
-                state.ship.statBonus, 
-                state.ship.oathed
-            ),
-            cooldown: calculateCooldown(
-                state.weapon.reload, 
-                calculateOathBonus(ship.reload125, state.ship.oathed), 
-                state.ship.statBonus
-            )
-        }), () => {this.props.handleCallBack(this.state)})
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result
+                    db.createObjectStore("database", {keyPath: "name"})
+                }
+
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    let transaction = db.transaction("database", "readonly")
+                    let objectStore = transaction.objectStore("database")
+                    const objectRequest = objectStore.get(value)
+
+                    objectRequest.onerror = (event) => reject(event)
+
+                    objectRequest.onsuccess = async (event) => {
+                        newWeapon = event.target.result
+
+                        if (newWeapon) {
+                            setDisableWeaponInputs(false)
+                            resolve(newWeapon)
+                            return                 
+                        }
+
+                        const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
+                        newWeapon = await response.json()
+
+                        if (!newWeapon) throw new Error("Failed to load weapon information!")
+                        
+                        transaction = db.transaction("database", "readwrite")
+                        objectStore = transaction.objectStore("database")
+                        const putRequest = objectStore.put(newWeapon)
+
+                        putRequest.onerror = (event) => reject(event)
+
+                        putRequest.onsuccess = (event) => {
+                            setDisableWeaponInputs(false)
+                            resolve(newWeapon)
+                        }
+                    }
+                }
+            })
+        }
+
+        setWeapon(newWeapon)
+        updateCooldown(ship, newWeapon)
     }
 
-    generateShipImage() {
-        return (
-            <div className={this.state.ship.rarity}>
-                <img
+    function updateCooldown(newShip, newWeapon) { 
+        const oathedBonus = calculateOathBonus(newShip.reload125, newShip.isOathed)
+        const newCooldown = calculateCooldown(newWeapon.reload, oathedBonus, newShip.statBonus)
+        setCooldown(newCooldown)
+        
+        handleCallBack({
+            name: newShip.name,
+            imgsrc: newShip.imgsrc_chibi,
+            cooldown: newCooldown
+        })
+    }
+
+    return (
+        <tr>
+            <td>
+                <Image
+                    imgsrc={ship.imgsrc}
+                    rarity={ship.rarity}
                     width={192}
                     height={256}
-                    src={this.state.ship.imgsrc}
-                >
-                </img>
-            </div>
-        )
-    }
-
-    generateShipInfo() {
-        const shipNames = sessionStorage.getItem("shipNames").split(",")
-        let options = []
-
-        shipNames.forEach(function(value) {
-            options.push(<option key={value} value={value}>{value}</option>)
-        })
-
-        options.push(<option key="" value="" defaultValue={true} disabled hidden></option>)
-
-        return (
-            <>
-            <label>
-                <b>Name: </b>
-                <select 
-                    value={this.state.ship.name}
-                    onChange={function(e) {this.updateShip(e)}.bind(this)}
-                >
-                    {options}
-                </select>
-            </label>
-            <br></br>
-            <label>
-                <b>Reload: </b>
-                <input
+                />
+            </td>
+            <td>
+                <Selector
+                    label="Name"
+                    value={ship.name}
+                    setValue={(e) => updateShip("name", e.target.value)}
+                    data={shipNames}
+                />
+                <br></br>
+                <Input
+                    label="Reload"
+                    value={ship.reload125}
+                    setValue={(e) => updateShip("reload125", e.target.value)}
                     type="number"
-                    defaultValue={this.state.ship.reload125}
-                    onChange={function(e) {
-                        this.setState((state, props) => ({
-                            ship: new Ship(
-                                state.ship.name,
-                                state.ship.rarity,
-                                state.ship.imgsrc,
-                                e.target.value,
-                                state.ship.statBonus,
-                                state.ship.oathed
-                            ),
-                            cooldown: calculateCooldown(
-                                state.weapon.reload, 
-                                calculateOathBonus(e.target.value, state.ship.oathed), 
-                                state.ship.statBonus
-                            )
-                        }), () => {this.props.handleCallBack(this.state)})
-                    }.bind(this)}
-                >
-                </input>
-            </label>
-            <br></br>
-            <label>
-                <b>Stat Bonus (%): </b>
-                <input
+                    disabled={disableShipInputs}
+                />
+                <br></br>
+                <Input
+                    label="Stat Bonus (%)"
+                    value={ship.statBonus}
+                    setValue={(e) => updateShip("statBonus", e.target.value)}
                     type="number"
-                    onChange={function(e) {
-                        this.setState((state, props) => ({
-                            ship: new Ship(
-                                state.ship.name,
-                                state.ship.rarity,
-                                state.ship.imgsrc,
-                                state.ship.reload125,
-                                e.target.value,
-                                state.ship.oathed
-                            ),
-                            cooldown: calculateCooldown(
-                                state.weapon.reload, 
-                                calculateOathBonus(state.ship.reload125, state.ship.oathed), 
-                                e.target.value
-                            )
-                        }), () => {this.props.handleCallBack(this.state)})
-                    }.bind(this)}
-                >
-                </input>
-            </label>
-            <br></br>
-            <label>
-                <b>Oathed?: </b>
-                <input
+                    disabled={disableShipInputs}
+                />
+                <br></br>
+                <Input
+                    label="Oathed?"
+                    value={ship.oathed}
+                    setValue={(e) => updateShip("isOathed", e.target.checked)}
                     type="checkbox"
-                    onClick={function (e) {
-                        this.setState((state, props) => ({
-                            ship: new Ship(
-                                state.ship.name,
-                                state.ship.rarity,
-                                state.ship.imgsrc,
-                                state.ship.reload125,
-                                state.ship.statBonus,
-                                e.target.checked
-                            ),
-                            cooldown: calculateCooldown(
-                                state.weapon.reload, 
-                                calculateOathBonus(state.ship.reload125, e.target.checked), 
-                                state.ship.statBonus
-                            )
-                        }), () => {this.props.handleCallBack(this.state)})
-                    }.bind(this)}
-                >
-                </input>
-            </label>
-            </>
-        )
-    }
-
-    async updateWeapon(e) {
-        const weaponName = e.target.value
-
-        const response = await fetch(HOST + "/weapon/" + encodeURIComponent(weaponName))
-        const weapon = await response.json()
-
-        if (!weapon) throw new Error("Failed to load weapon information!")
-
-        this.setState((state, props) => ({
-            weapon: new Weapon(
-                weaponName, 
-                weapon.rarity, 
-                weapon.imgsrc, 
-                weapon.reload
-            ),
-            cooldown: calculateCooldown(
-                weapon.reload, 
-                calculateOathBonus(state.ship.reload125, state.ship.oathed), 
-                state.ship.statBonus
-            )
-        }), () => {this.props.handleCallBack(this.state)})        
-    }
-
-    generateWeaponImage() {
-        return (
-            <div className={this.state.weapon.rarity}>
-                <img
+                    disabled={disableShipInputs}
+                />
+            </td>
+            <td>
+                <Image
+                    imgsrc={weapon.imgsrc}
+                    rarity={weapon.rarity}
                     width={128}
                     height={128}
-                    src={this.state.weapon.imgsrc}
-                >
-                </img>
-            </div>
-        )
-    }
-
-    generateWeaponInfo() {
-        const weaponNames = sessionStorage.getItem("weaponNames").split(",")
-        let options = []
-
-        weaponNames.forEach(function(value) {
-            options.push(<option key={value} value={value}>{value}</option>)
-        })
-
-        options.push(<option key="" defaultValue disabled hidden></option>)
-
-        return (
-            <>
-            <label>
-                <b>Name: </b>
-                <select 
-                    value={this.state.weapon.name} 
-                    onChange={function(e) {this.updateWeapon(e)}.bind(this)}
-                >
-                    {options}
-                </select>
-            </label>
-            <br></br>
-            <label>
-                <b>Reload: </b>
-                <input
-                    type='number'
-                    defaultValue={this.state.weapon.reload}
-                    onChange={function(e){
-                        this.setState((state, props) => ({
-                            weapon: new Weapon(
-                                state.weapon.name, 
-                                state.weapon.rarity, 
-                                state.weapon.imgsrc, 
-                                e.target.value
-                                ),
-                            cooldown: calculateCooldown(
-                                e.target.value, 
-                                calculateOathBonus(state.ship.reload125, state.ship.oathed), 
-                                state.ship.statBonus)
-                        }), () => {this.props.handleCallBack(this.state)})
-                    }.bind(this)}
-                >
-                </input>
-            </label>
-            </>
-        )
-    }
-
-    generateCooldown() {
-        return this.state.cooldown
-    }
-
-    render() {
-        return (
-            <tr>
-                <td>
-                    {this.generateShipImage()}
-                </td>
-                <td>
-                    {this.generateShipInfo()}
-                </td>
-                <td>
-                    {this.generateWeaponImage()}
-                </td>
-                <td>
-                    {this.generateWeaponInfo()}
-                </td>
-                <td>
-                    {this.generateCooldown()}
-                </td>
-            </tr>
-        )
-    }
+                />
+            </td>
+            <td>
+                <Selector
+                    label="Name"
+                    value={weapon.name}
+                    setValue={(e) => updateWeapon("name", e.target.value)}
+                    data={weaponNames}
+                />
+                <br></br>
+                <Input
+                    label="Reload"
+                    value={weapon.reload}
+                    setValue={(e) => updateWeapon("reload", e.target.value)}
+                    type="number"
+                    disabled={disableWeaponInputs}
+                />
+            </td>
+            <td>
+                <div>
+                    {cooldown}
+                </div>
+            </td>
+        </tr>
+    )
 }
 
 function calculateOathBonus(reload125, oathed) {
     if (oathed) return Math.ceil(reload125 / 1.06 * 1.12)
-    else return reload125
+    return reload125
 }
 
 function calculateCooldown(weaponReloadTime, shipReloadStat, shipStatBonus) {
@@ -310,5 +280,3 @@ function calculateCooldown(weaponReloadTime, shipReloadStat, shipStatBonus) {
     const cooldown = String((weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + shipStatBonus) + 100))).toFixed(2))
     return cooldown
 }
-
-export default ShipTableRow
