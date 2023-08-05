@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+dist/*
 dist-ssr
 server
 *.local
@@ -24,3 +25,7 @@ server
 *.sln
 *.sw?
 .env*
+dist/index.html
+dist/vite.svg
+dist/assets/index-10514455.css
+dist/assets/index-add72e19.js

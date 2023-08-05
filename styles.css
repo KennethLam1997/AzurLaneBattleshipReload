@@ -1,6 +1,6 @@
 @font-face {
     font-family: azurLane;
-    src: url('./src/assets/Lato-Bold.ttf');
+    src: url('/Lato-Bold.ttf');
 }
 
 .common {
@@ -272,7 +272,7 @@ hr {
 }
 
 body {
-    background-image: url("./src/assets/academy_background.png");
+    background-image: url("/academy_background.png");
     background-repeat: no-repeat;
     background-size: cover;
 }

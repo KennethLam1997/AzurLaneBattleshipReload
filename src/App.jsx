@@ -67,14 +67,14 @@ export default function App () {
     function addNewTab() {
         let newShip = {...ships}
         newShip["ship" + (shipIdx)] = {
-            imgsrc_chibi: './src/assets/unknown_ship_icon.png',
+            imgsrc_chibi: '/unknown_ship_icon.png',
             level: 1,
             level1: {}, 
             level100: {}, 
             level120: {}, 
             level125: {}, 
             weapon: {
-                imgsrc: './src/assets/equipmentAddIcon.png',
+                imgsrc: '/equipmentAddIcon.png',
                 enhance0: {}, 
                 enhance10: {},
                 enhance: 0
