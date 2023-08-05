@@ -67,6 +67,7 @@ export default function App () {
     function addNewTab() {
         let newShip = {...ships}
         newShip["ship" + (shipIdx)] = {
+            imgsrc_chibi: './src/assets/unknown_ship_icon.png',
             level: 1,
             level1: {}, 
             level100: {}, 
@@ -92,36 +93,34 @@ export default function App () {
                     eventKey={"ship" + idx} 
                     title={<span><img src={ships["ship" + idx].imgsrc_chibi} width={75} height={70}/></span>}
                 >
-                    <div className="main-container">
-                        <div className="content-container">
-                            <div className="left-container">
-                                <ShipBox 
-                                    ship={ships["ship" + idx]} 
-                                    handleCallBack={(state) => addShipStats(idx, state)}
-                                />
-                                <GearBox
-                                    ship={ships["ship" + idx]} 
-                                    handleCallBack={(state) => addShipStats(idx, state)}
-                                />
-                                <CalculationBox
-                                    ship={ships["ship" + idx]} 
-                                    handleCallBack={(state) => addShipStats(idx, state)}
-                                />
-                            </div>
-                            <div className="right-container">
-                                <StatsBox 
-                                    ship={ships["ship" + idx]} 
-                                    handleCallBack={(state) => addShipStats(idx, state)}
-                                />
-                                <BonusStatsBox 
-                                    ship={ships["ship" + idx]} 
-                                    handleCallBack={(state) => addShipStats(idx, state)}
-                                />
-                                <GearStatsBox
-                                    ship={ships["ship" + idx]} 
-                                    handleCallBack={(state) => addShipStats(idx, state)}
-                                />
-                            </div>
+                    <div className="content-container">
+                        <div className="left-container">
+                            <ShipBox 
+                                ship={ships["ship" + idx]} 
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
+                            <GearBox
+                                ship={ships["ship" + idx]} 
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
+                            <CalculationBox
+                                ship={ships["ship" + idx]} 
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
+                        </div>
+                        <div className="right-container">
+                            <StatsBox 
+                                ship={ships["ship" + idx]} 
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
+                            <BonusStatsBox 
+                                ship={ships["ship" + idx]} 
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
+                            <GearStatsBox
+                                ship={ships["ship" + idx]} 
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
                         </div>
                     </div>
                 </Tab>

@@ -147,14 +147,12 @@ export function StatsBox({ ship, handleCallBack }) {
 
     return (
         <div className="box centered-horizontal">
-            <h4>Stats</h4>
+            <h4 className="min-label">{ship.name}</h4>
             <div className="box-inner">
                 <Form>
                     <Form.Group as={Row} className="box-sub-inner">
                         <Form.Label column style={{width: "100px", padding: "0px"}}>
-                            <h4>
-                                Level: {ship.level}
-                            </h4>
+                            <h5>Level {ship.level}</h5>
                         </Form.Label>
                         <Col>
                             <Form.Range 
@@ -367,14 +365,12 @@ export function GearStatsBox({ ship, handleCallBack }) {
 
     return (
         <div className="box centered-horizontal" style={{width: "600px", marginTop: "25px"}}>
-            <h4>Stats</h4>
+            <h4 className="min-label">{ship.weapon.name}</h4>
             <div className="box-inner">
                 <Form>
                     <Form.Group as={Row} className="box-sub-inner">
                         <Form.Label column style={{width: "100px", padding: "0px"}}>
-                            <h4>
-                                Enhance: {enhanceMap[enhance]}
-                            </h4>
+                            <h5>Enhance +{enhanceMap[enhance]}</h5>
                         </Form.Label>
                         <Col>
                             <Form.Range 
@@ -651,7 +647,7 @@ function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }) {
                 </>
             )
         }
-        else if (field) {
+        else if (field != undefined) {
             return (<h5 style={{float: "right", paddingRight: "5px"}}>{field}{suffix}</h5>)
         }
     }
