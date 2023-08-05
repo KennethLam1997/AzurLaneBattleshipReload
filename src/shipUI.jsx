@@ -13,7 +13,6 @@ if (import.meta.env.DEV) {
 
 const EQUIPMENTLIMIT = 5
 
-
 export function ShipBox({ ship, handleCallBack }) {
     const generateOptions = () => {
         const data = sessionStorage.getItem('shipNames').split(",")
@@ -89,7 +88,7 @@ export function ShipBox({ ship, handleCallBack }) {
     }
 
     return (
-        <div className="centered-both">
+        <div className="centered-horizontal-ship-icon">
             <OverlayTrigger trigger="click" rootClose placement="right" overlay={renderTooltip}>
                 <div className={ship.rarity} style={{position: "relative"}}>
                     <div 
@@ -264,19 +263,7 @@ export function StatsBox({ ship, handleCallBack }) {
     );
 }
 
-export function BonusStatsBox({ handleCallBack }) {
-    const [bonusReload, setBonusReload] = useState(0)
-    const [bonusPercentReload, setBonusPercentReload] = useState(0)
-    const [isOathed, setOathed] = useState(false)
-
-    useEffect(() => {
-        handleCallBack({
-            "bonusReload": bonusReload,
-            "bonusPercentReload": bonusPercentReload,
-            "isOathed": isOathed
-        })
-    }, [bonusReload, bonusPercentReload, isOathed])
-
+export function BonusStatsBox({ ship, handleCallBack }) {
     return (
         <div className="box centered-horizontal">
             <h4>Bonus Stats</h4>
@@ -287,16 +274,16 @@ export function BonusStatsBox({ handleCallBack }) {
                             <SingleStatInputBox 
                                 iconsrc="./src/assets/Reload_big.png"
                                 label="RLD"
-                                value={bonusReload}
-                                setValue={(e) => setBonusReload(e.target.value)}
+                                value={ship.bonusReload}
+                                setValue={(e) => handleCallBack({"bonusReload": e.target.value})}
                             />
                         </Col>
                         <Col>
                             <SingleStatInputBox 
                                 iconsrc="./src/assets/Reload_big.png"
                                 label="RLD (%)"
-                                value={bonusPercentReload}
-                                setValue={(e) => setBonusPercentReload(e.target.value)}
+                                value={ship.bonusPercentReload}
+                                setValue={(e) => handleCallBack({"bonusPercentReload": e.target.value})}
                             />
                         </Col>
                         <Col>
@@ -311,8 +298,8 @@ export function BonusStatsBox({ handleCallBack }) {
                                     <Form.Check 
                                         className="stat-input" 
                                         type="switch" 
-                                        defaultValue={isOathed} 
-                                        onChange={(e) => setOathed(e.target.checked)}>
+                                        defaultValue={ship.isOathed} 
+                                        onChange={(e) => handleCallBack({"isOathed": e.target.checked})}>
                                     </Form.Check>
                                 </Form.Label>                
                             </InputGroup>
@@ -347,7 +334,7 @@ export function GearBox({ ship, handleCallBack }) {
     }
 
     return (
-        <div className="box centered-horizontal">
+        <div className="box centered-horizontal" style={{top: "277px"}}>
             <h4>Gear</h4>
             <div className="box-inner">
                 <Form>
@@ -379,7 +366,7 @@ export function GearStatsBox({ ship, handleCallBack }) {
     }, [enhance])
 
     return (
-        <div className="box centered-horizontal" style={{width: "600px"}}>
+        <div className="box centered-horizontal" style={{width: "600px", marginTop: "25px"}}>
             <h4>Stats</h4>
             <div className="box-inner">
                 <Form>
@@ -425,7 +412,8 @@ export function GearStatsBox({ ship, handleCallBack }) {
                         <Col>
                             <SingleStatBox 
                                 label="Rate of Fire"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].rof + "s"}
+                                field={ship.weapon["enhance" + enhanceMap[enhance]].rof}
+                                suffix="s"
                             />
                         </Col>
                         <Col>
@@ -437,7 +425,8 @@ export function GearStatsBox({ ship, handleCallBack }) {
                         <Col>
                             <SingleStatBox 
                                 label="Angle"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].angle + "°"}
+                                field={ship.weapon["enhance" + enhanceMap[enhance]].angle}
+                                suffix="°"
                             />
                         </Col>
                     </Form.Group>         
@@ -457,7 +446,8 @@ export function GearStatsBox({ ship, handleCallBack }) {
                         <Col>
                             <SingleStatBox 
                                 label="Volley Time"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].volleyTime + "s"}
+                                field={ship.weapon["enhance" + enhanceMap[enhance]].volleyTime}
+                                suffix="s"
                             />
                         </Col>
                     </Form.Group>   
@@ -474,19 +464,22 @@ export function GearStatsBox({ ship, handleCallBack }) {
                         <Col>
                             <SingleStatBox 
                                 label="LT Eff."
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].light + "%"}
+                                field={ship.weapon["enhance" + enhanceMap[enhance]].light}
+                                suffix="%"
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 label="MED Eff."
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].medium + "%"}
+                                field={ship.weapon["enhance" + enhanceMap[enhance]].medium}
+                                suffix="%"
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
                                 label="HVY Eff."
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].heavy + "%"}
+                                field={ship.weapon["enhance" + enhanceMap[enhance]].heavy}
+                                suffix="%"
                             />
                         </Col>
                     </Form.Group>                           
@@ -494,6 +487,34 @@ export function GearStatsBox({ ship, handleCallBack }) {
             </div>
         </div>
     )    
+}
+
+export function CalculationBox({ ship, handleCallBack }) {
+    return (
+        <div className="box centered-horizontal" style={{marginTop: "52px", width: "400px", top: "250px"}}>
+            <h4>Calculations</h4>
+            <div className="box-inner">
+                <Form>
+                    <Form.Group as={Row}>
+                        <Col>
+                            <SingleStatBox 
+                                label="First Cooldown"
+                                field="?"
+                                suffix="s"
+                            />
+                        </Col>
+                        <Col>
+                            <SingleStatBox 
+                                label="Cooldown"
+                                field={ship.cooldown}
+                                suffix="s"
+                            />
+                        </Col>
+                    </Form.Group>
+                </Form>
+            </div>
+        </div>        
+    )
 }
 
 function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
@@ -612,7 +633,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     )
 }
 
-function SingleStatBox({ iconsrc, label, field, field2 }) {
+function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }) {
     const displayIcon = () => {
         if (iconsrc) return (
             <InputGroup.Text className="stat-icon-wrapper">
@@ -625,13 +646,13 @@ function SingleStatBox({ iconsrc, label, field, field2 }) {
         if (field2) {
             return (
                 <>
-                <h5 className="bonus-stat-display" style={{float: "right", paddingRight: "5px"}}> +{field2}</h5> 
+                <h5 className="bonus-stat-display" style={{float: "right", paddingRight: "5px"}}> +{field2}{suffix2}</h5> 
                 <h5 style={{float: "right"}}>{field}</h5>
                 </>
             )
         }
-        else {
-            return (<h5 style={{float: "right", paddingRight: "5px"}}>{field}</h5>)
+        else if (field) {
+            return (<h5 style={{float: "right", paddingRight: "5px"}}>{field}{suffix}</h5>)
         }
     }
 

@@ -1,11 +1,11 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import 'bootstrap/dist/css/bootstrap.css';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
 import ShipTableRow from "./shipTableRow.jsx"
 import TimingGraph from './plotter.jsx';
-import { ShipBox, StatsBox, BonusStatsBox, GearBox, GearStatsBox } from "./shipUI.jsx";
+import { ShipBox, StatsBox, BonusStatsBox, GearBox, GearStatsBox, CalculationBox } from "./shipUI.jsx";
 
 let HOST = 'https://xanderking-azurlane.onrender.com'
 
@@ -17,9 +17,9 @@ export const ROWLIMIT = 3
 
 export default function App () {
     const [shipIdx, setShipIdx] = useState(0)
-    const [ship, setShip] = useState({})
+    const [ships, setShips] = useState({})
     const shipRef = useRef()
-    shipRef.current = ship
+    shipRef.current = ships
     
     // let rows = []
     // let dynamicProps = {}
@@ -37,12 +37,23 @@ export default function App () {
 
     function addShipStats (i, state) {
         // Since callbacks don't use current state, use ref.
-        setShip({
+        const ship = {
+            ...shipRef.current["ship" + i],
+            ...state
+        }
+        const shipLevel = ship["level" + ship.level]
+        const shipWeapon = ship.weapon["enhance" + ship.weapon.enhance]
+
+        const postOathReload = calculateOathBonus(shipLevel.reload, ship.bonusReload, ship.isOathed)
+        let cooldown = calculateCooldown(shipWeapon.rof, postOathReload, ship.bonusPercentReload)
+        cooldown = cooldown == 0 ? undefined : cooldown
+
+        setShips({
             ...shipRef.current,
             ["ship" + i]: {
                 // Update value instead of replacing.
-                ...shipRef.current["ship" + i],
-                ...state
+                ...ship,
+                cooldown: cooldown
             }
         })
     }
@@ -54,7 +65,7 @@ export default function App () {
     }
 
     function addNewTab() {
-        let newShip = {...ship}
+        let newShip = {...ships}
         newShip["ship" + (shipIdx)] = {
             level: 1,
             level1: {}, 
@@ -69,7 +80,7 @@ export default function App () {
             }
         } 
 
-        setShip(newShip)
+        setShips(newShip)
         setShipIdx(shipIdx + 1)
     }
     
@@ -79,35 +90,35 @@ export default function App () {
                 <Tab 
                     key={idx}
                     eventKey={"ship" + idx} 
-                    title={<span><img src={ship["ship" + idx].imgsrc_chibi} width={75} height={70}/></span>}
+                    title={<span><img src={ships["ship" + idx].imgsrc_chibi} width={75} height={70}/></span>}
                 >
                     <div className="main-container">
                         <div className="content-container">
-                            <div className="left-container" style={{height: "450px"}}>
+                            <div className="left-container">
                                 <ShipBox 
-                                    ship={ship["ship" + idx]} 
+                                    ship={ships["ship" + idx]} 
+                                    handleCallBack={(state) => addShipStats(idx, state)}
+                                />
+                                <GearBox
+                                    ship={ships["ship" + idx]} 
+                                    handleCallBack={(state) => addShipStats(idx, state)}
+                                />
+                                <CalculationBox
+                                    ship={ships["ship" + idx]} 
                                     handleCallBack={(state) => addShipStats(idx, state)}
                                 />
                             </div>
                             <div className="right-container">
                                 <StatsBox 
-                                    ship={ship["ship" + idx]} 
+                                    ship={ships["ship" + idx]} 
                                     handleCallBack={(state) => addShipStats(idx, state)}
                                 />
-                                <BonusStatsBox handleCallBack={(state) => addShipStats(idx, state)}/>
-                            </div>
-                        </div>
-
-                        <div className="content-container">
-                            <div className="left-container">
-                                <GearBox
-                                    ship={ship["ship" + idx]} 
+                                <BonusStatsBox 
+                                    ship={ships["ship" + idx]} 
                                     handleCallBack={(state) => addShipStats(idx, state)}
                                 />
-                            </div>
-                            <div className="right-container">
                                 <GearStatsBox
-                                    ship={ship["ship" + idx]} 
+                                    ship={ships["ship" + idx]} 
                                     handleCallBack={(state) => addShipStats(idx, state)}
                                 />
                             </div>
@@ -141,4 +152,22 @@ export default function App () {
             {createTabs()}
         </>
     )
+}
+
+function calculateOathBonus(shipReload, bonusFlatReload, isOathed) {
+    shipReload = parseFloat(shipReload) || 0
+    bonusFlatReload = parseFloat(bonusFlatReload) || 0
+    isOathed = isOathed != undefined ? isOathed : false
+    const reload = shipReload + bonusFlatReload
+
+    if (isOathed) return Math.ceil(reload / 1.06 * 1.12)
+    return reload
+}
+
+function calculateCooldown(weaponReloadTime, shipReloadStat, bonusPercentStat) {
+    weaponReloadTime = parseFloat(weaponReloadTime) || 0
+    shipReloadStat = parseFloat(shipReloadStat) || 0
+    bonusPercentStat = parseFloat(bonusPercentStat) / 100 || 0
+    const cooldown = (weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentStat) + 100))).toFixed(2)
+    return cooldown
 }
