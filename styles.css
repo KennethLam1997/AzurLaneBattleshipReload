@@ -45,10 +45,10 @@ table {
 }
 
 .centered-horizontal {
-    margin: 0;
+    margin: 0 !important;
     position: relative !important;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 50% !important;
+    transform: translateX(-50%) !important;
 }
 
 .centered-horizontal-ship-icon {
@@ -85,6 +85,7 @@ table {
 
 .box-sub-inner {
     background-color: rgb(135, 139, 148);
+    min-height: 37px;
 }
 
 .stat-icon-wrapper {
@@ -168,7 +169,7 @@ table {
     top: 45px;
 }
 
-h4, h5, h6 {
+h1, h2, h3, h4, h5, h6 {
     font-family: azurLane;
     color: white !important;
     padding-top: 5px;
@@ -225,10 +226,9 @@ h4, h5, h6 {
 }
 
 .main-container {
-    background-color: rgba(0, 0, 0, 0.3);
     height: 99vh !important;
-    width: 1172px !important;
-    margin: 10px auto 0;
+    width: 1308px !important;
+    margin: 0 auto 0;
     display: block;
 }
 
@@ -244,27 +244,34 @@ h4, h5, h6 {
 }
 
 .content-container {
+    background-color: rgba(0, 0, 0, 0.5);
     display: block;
     overflow: auto;
 }
 
 .left-container {
     float: left;
-    height: 600px;
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
     width: 522px;
+    min-height: 825px !important
 }
 
 .right-container {
     float: right;
-    height: 100%;
+    min-height: 825px !important;
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
     width: 650px;
     margin-left: auto;
+}
+
+.tab-container-label {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgb(255, 255, 255);
 }
 
 hr {
@@ -275,4 +282,58 @@ body {
     background-image: url("/academy_background.png");
     background-repeat: no-repeat;
     background-size: cover;
+}
+
+.tab-column {
+    width: 80px !important;
+    flex: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.tab-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.tab {
+    min-width: 75px !important;
+    width: 75px !important;
+    padding: 0px !important;
+}
+
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+    display: none;
+}
+
+.nav-link {
+    border-top: 1px solid black !important;
+    border-bottom: 1px solid black !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    min-width: 75px !important;
+    min-height: 70px !important;
+}
+
+.left-tabs {
+    border-left: 1px solid black !important;
+    margin-right: 5px !important;
+    border-right: 5px solid transparent !important;
+}
+
+.right-tabs {
+    border-right: 1px solid black !important;
+    border-left: 5px solid transparent !important;
+    margin-left: 5px !important;
+}
+
+.nav-link.active.left-tabs {
+    border-right: 5px solid blue !important;
+    background-color: white !important;
+}
+
+.nav-link.active.right-tabs {
+    border-left: 5px solid blue !important;
+    background-color: white !important;
 }

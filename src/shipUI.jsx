@@ -29,7 +29,7 @@ export function ShipBox({ ship, handleCallBack }) {
 
     const renderTooltip = (
         <Popover id="popover-basic" style={{maxWidth: "100%"}}>
-            <Popover.Header as="h3">Add ship?</Popover.Header>
+            <Popover.Header>Add ship?</Popover.Header>
             <Popover.Body >
                 <select 
                     value={ship.name}
@@ -64,7 +64,7 @@ export function ShipBox({ ship, handleCallBack }) {
             starIcons.push(
                 <img 
                     key={i}
-                    src={'/rarityStarIcon.png'} 
+                    src={new URL("/rarityStarIcon.png", import.meta.url).href} 
                     width="30px" 
                     height="30px"
                     style={{
@@ -88,12 +88,12 @@ export function ShipBox({ ship, handleCallBack }) {
     }
 
     return (
-        <div className="centered-horizontal-ship-icon">
+        <div className="centered-horizontal-ship-icon" style={{marginTop: "10px"}}>
             <OverlayTrigger trigger="click" rootClose placement="right" overlay={renderTooltip}>
                 <div className={ship.rarity} style={{position: "relative"}}>
                     <div 
                         className="ship-icon"
-                        style={{backgroundImage: "url(" + ship.imgsrc + ")"}}
+                        style={{backgroundImage: "url(" + new URL(ship.imgsrc, import.meta.url).href + ")"}}
                     >
                         <div className="ship-rarity-box">
                             {generateRarity()}
@@ -110,7 +110,7 @@ export function ShipBox({ ship, handleCallBack }) {
                             }}
                         >
                             <img 
-                                src="/BB.png"
+                                src={new URL('/BB.png', import.meta.url).href}
                                 height="27px"
                             ></img>
                             <div 
@@ -146,7 +146,7 @@ export function StatsBox({ ship, handleCallBack }) {
     }
 
     return (
-        <div className="box centered-horizontal">
+        <div className="box centered-horizontal" style={{top: "10px"}}>
             <h4 className="min-label">{ship.name}</h4>
             <div className="box-inner">
                 <Form>
@@ -167,21 +167,21 @@ export function StatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Health_big.png"
+                                iconsrc={new URL('/Health_big.png', import.meta.url).href}
                                 label="HP"
                                 field={ship["level" + ship.level].health}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/armor_big.png"
+                                iconsrc={new URL('/armor_big.png', import.meta.url).href}
                                 label={ship["level" + ship.level].armor}
                                 field=""
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Reload_big.png"
+                                iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD"
                                 field={ship["level" + ship.level].reload}
                                 field2={ship.bonusReload}
@@ -191,7 +191,7 @@ export function StatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Firepower_big.png"
+                                iconsrc={new URL('/Firepower_big.png', import.meta.url).href}
                                 label="FP"
                                 field={ship["level" + ship.level].firepower}
                                 field2={ship.weapon["enhance" + ship.weapon.enhance].firepower}
@@ -199,14 +199,14 @@ export function StatsBox({ ship, handleCallBack }) {
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Torpedo_big.png"
+                                iconsrc={new URL('/Torpedo_big.png', import.meta.url).href}
                                 label="TRP"
                                 field={ship["level" + ship.level].torpedo}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Evasion_big.png"
+                                iconsrc={new URL('/Evasion_big.png', import.meta.url).href}
                                 label="EVA"
                                 field={ship["level" + ship.level].evasion}
                             />
@@ -215,7 +215,7 @@ export function StatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Antiair_big.png"
+                                iconsrc={new URL('/AntiAir_big.png', import.meta.url).href}
                                 label="AA"
                                 field={ship["level" + ship.level].antiair}
                                 field2={ship.weapon["enhance" + ship.weapon.enhance].antiair}
@@ -223,14 +223,14 @@ export function StatsBox({ ship, handleCallBack }) {
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Aviation_big.png"
+                                iconsrc={new URL('/Aviation_big.png', import.meta.url).href}
                                 label="AVI"
                                 field={ship["level" + ship.level].aviation}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Consumption_big.png"
+                                iconsrc={new URL('/Consumption_big.png', import.meta.url).href}
                                 label="Cost"
                                 field={ship["level" + ship.level].consumption}
                             />
@@ -239,7 +239,7 @@ export function StatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col xs="auto">
                             <SingleStatBox 
-                                iconsrc="/ASW_big.png"
+                                iconsrc={new URL('/ASW_big.png', import.meta.url).href}
                                 label="ASW"
                                 field={ship["level" + ship.level].asw}
                             />
@@ -249,7 +249,7 @@ export function StatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col xs="auto">
                             <SingleStatBox 
-                                iconsrc="/Luck_big.png"
+                                iconsrc={new URL('/Luck_big.png', import.meta.url).href}
                                 label="LCK"
                                 field={ship["level" + ship.level].luck}
                             />
@@ -263,14 +263,14 @@ export function StatsBox({ ship, handleCallBack }) {
 
 export function BonusStatsBox({ ship, handleCallBack }) {
     return (
-        <div className="box centered-horizontal">
+        <div className="box centered-horizontal" style={{top: "10px"}}>
             <h4>Bonus Stats</h4>
             <div className="box-inner">
                 <Form>
                     <Form.Group as={Row}>
                         <Col>
                             <SingleStatInputBox 
-                                iconsrc="/Reload_big.png"
+                                iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD"
                                 value={ship.bonusReload}
                                 setValue={(e) => handleCallBack({"bonusReload": e.target.value})}
@@ -278,7 +278,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                         </Col>
                         <Col>
                             <SingleStatInputBox 
-                                iconsrc="/Reload_big.png"
+                                iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD (%)"
                                 value={ship.bonusPercentReload}
                                 setValue={(e) => handleCallBack({"bonusPercentReload": e.target.value})}
@@ -287,7 +287,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                         <Col>
                             <InputGroup className="box-sub-inner">
                                 <InputGroup.Text className="stat-icon-wrapper">
-                                    <img className="stat-icon" src="/Health_big.png"></img>
+                                    <img className="stat-icon" src={new URL('/Health_big.png', import.meta.url).href}></img>
                                 </InputGroup.Text>
                                 <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
                                     <h5 style={{float: "left"}}>
@@ -332,7 +332,7 @@ export function GearBox({ ship, handleCallBack }) {
     }
 
     return (
-        <div className="box centered-horizontal" style={{top: "273px"}}>
+        <div className="box centered-horizontal" style={{top: "283px"}}>
             <h4>Gear</h4>
             <div className="box-inner">
                 <Form>
@@ -364,7 +364,7 @@ export function GearStatsBox({ ship, handleCallBack }) {
     }, [enhance])
 
     return (
-        <div className="box centered-horizontal" style={{width: "600px", marginTop: "25px"}}>
+        <div className="box centered-horizontal" style={{width: "600px", top: "30px"}}>
             <h4 className="min-label">{ship.weapon.name}</h4>
             <div className="box-inner">
                 <Form>
@@ -385,14 +385,14 @@ export function GearStatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/Firepower_big.png"
+                                iconsrc={new URL('/Firepower_big.png', import.meta.url).href}
                                 label="FP"
                                 field={ship.weapon["enhance" + enhanceMap[enhance]].firepower}
                             />
                         </Col>
                         <Col>
                             <SingleStatBox 
-                                iconsrc="/AntiAir_big.png"
+                                iconsrc={new URL('/AntiAir_big.png', import.meta.url).href}
                                 label="AA"
                                 field={ship.weapon["enhance" + enhanceMap[enhance]].antiair}
                             />
@@ -487,7 +487,7 @@ export function GearStatsBox({ ship, handleCallBack }) {
 
 export function CalculationBox({ ship, handleCallBack }) {
     return (
-        <div className="box centered-horizontal" style={{marginTop: "46px", width: "400px", top: "250px"}}>
+        <div className="box centered-horizontal" style={{marginTop: "46px", width: "400px", top: "302px"}}>
             <h4>Calculations</h4>
             <div className="box-inner">
                 <Form>
@@ -516,7 +516,7 @@ export function CalculationBox({ ship, handleCallBack }) {
 function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     // For pesky undefined ship state errors.
     if (ship == undefined) { 
-        ship = {weapon: {imgsrc: './src/assets/equipmentAddIcon.png'}} 
+        ship = {weapon: {imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href}} 
     }
 
     const generateOptions = () => {
@@ -535,7 +535,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     const tooltip = () => {
         if (disabled) return (
             <Popover id="popover-basic" style={{maxWidth: "100%"}}>
-                <Popover.Header as="h3">Feature under development!</Popover.Header>
+                <Popover.Header>Feature under development!</Popover.Header>
                 <Popover.Body >
                     Check back for any updates.
                 </Popover.Body>
@@ -544,7 +544,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
 
         return (
             <Popover id="popover-basic" style={{maxWidth: "100%"}}>
-                <Popover.Header as="h3">Add equipment?</Popover.Header>
+                <Popover.Header>Add equipment?</Popover.Header>
                 <Popover.Body>
                     <select 
                         value={ship.weapon.name}
@@ -574,7 +574,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
             starIcons.push(
                 <img 
                     key={i}
-                    src={'./src/assets/rarityStarIcon.png'} 
+                    src={new URL("/rarityStarIcon.png", import.meta.url).href} 
                     width="15px" 
                     height="15px"
                     style={{
