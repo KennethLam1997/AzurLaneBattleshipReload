@@ -17,26 +17,24 @@ if (import.meta.env.DEV) {
 }
 
 export const ROWLIMIT = 3
+const TEMPLATETAB = {
+    imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
+    level: 1,
+    level1: {}, 
+    level100: {}, 
+    level120: {}, 
+    level125: {}, 
+    weapon: {
+        imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
+        enhance0: {}, 
+        enhance10: {},
+        enhance: 0
+    }
+}
 
 export default function App () {
+    const [ships, setShips] = useState(JSON.parse(sessionStorage.getItem('data')) || [TEMPLATETAB])
     const [currentTab, setCurrentTab] = useState(JSON.parse(sessionStorage.getItem('currentTab')) || 0)
-    const [shipIdx, setShipIdx] = useState(JSON.parse(sessionStorage.getItem('shipIdx')) || 1)
-    const [ships, setShips] = useState(JSON.parse(sessionStorage.getItem('data')) || {
-        "ship0": {
-            imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
-            level: 1,
-            level1: {}, 
-            level100: {}, 
-            level120: {}, 
-            level125: {}, 
-            weapon: {
-                imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
-                enhance0: {}, 
-                enhance10: {},
-                enhance: 0
-            }
-        }
-    })
     const shipRef = useRef()
     shipRef.current = ships
     
@@ -56,8 +54,7 @@ export default function App () {
 
     useEffect(() => {
         sessionStorage.setItem('currentTab', JSON.stringify(currentTab))
-        sessionStorage.setItem('shipIdx', JSON.stringify(shipIdx))
-    }, [currentTab, shipIdx])
+    }, [currentTab])
 
     useEffect(() => {
         sessionStorage.setItem('data', JSON.stringify(ships))
@@ -66,24 +63,16 @@ export default function App () {
     function addShipStats (i, state) {
         // Since callbacks don't use current state, use ref.
         const ship = {
-            ...shipRef.current["ship" + i],
+            ...shipRef.current[i],
             ...state
         }
         const shipLevel = ship["level" + ship.level]
         const shipWeapon = ship.weapon["enhance" + ship.weapon.enhance]
-
         const postOathReload = calculateOathBonus(shipLevel.reload, ship.bonusReload, ship.isOathed)
         let cooldown = calculateCooldown(shipWeapon.rof, postOathReload, ship.bonusPercentReload)
         cooldown = cooldown == 0 ? undefined : cooldown
 
-        setShips({
-            ...shipRef.current,
-            ["ship" + i]: {
-                // Update value instead of replacing.
-                ...ship,
-                cooldown: cooldown
-            }
-        })
+        setShips(Object.assign([], shipRef.current, {[i]: {...ship, cooldown: cooldown}}))
     }
 
     function handleOnSelect(key) {
@@ -96,25 +85,8 @@ export default function App () {
     }
 
     function addNewTab() {
-        setShips({
-            ...ships,
-            ["ship" + shipIdx]: {
-                imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
-                level: 1,
-                level1: {}, 
-                level100: {}, 
-                level120: {}, 
-                level125: {}, 
-                weapon: {
-                    imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
-                    enhance0: {}, 
-                    enhance10: {},
-                    enhance: 0
-                }
-            }
-        })
-        setCurrentTab(shipIdx)
-        setShipIdx(shipIdx + 1)
+        setShips(Object.assign([], ships, {[ships.length]: TEMPLATETAB}))
+        setCurrentTab(ships.length)
     }
     
     function createTabs() {
@@ -159,17 +131,17 @@ export default function App () {
         //     )
         // })
 
-        const tabs = [...Array(shipIdx)].map((ele, idx) => {
+        const tabs = [...Array(ships.length)].map((ele, idx) => {
             return (
                 <Nav.Item key={idx} className="tab">
                     <Nav.Link key={idx} eventKey={idx} className="left-tabs tab">
-                        <img src={ships["ship" + idx].imgsrc_chibi} width={75} height={70}/>
+                        <img src={ships[idx].imgsrc_chibi} width={75} height={70}/>
                     </Nav.Link>
                 </Nav.Item>
             )
         })
 
-        const tabContents = [...Array(shipIdx)].map((ele, idx) => {
+        const tabContents = [...Array(ships.length)].map((ele, idx) => {
             return (
                 <Tab.Pane key={idx} eventKey={idx}>
                     <div className="content-container">
@@ -178,15 +150,15 @@ export default function App () {
                                 <h2><center>Ship</center></h2>
                             </div>
                             <ShipBox 
-                                ship={ships["ship" + idx]} 
+                                ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <GearBox
-                                ship={ships["ship" + idx]} 
+                                ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <CalculationBox
-                                ship={ships["ship" + idx]} 
+                                ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                         </div>
@@ -195,15 +167,15 @@ export default function App () {
                                 <h2><center>Stats</center></h2>
                             </div>
                             <StatsBox 
-                                ship={ships["ship" + idx]} 
+                                ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <BonusStatsBox 
-                                ship={ships["ship" + idx]} 
+                                ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <GearStatsBox
-                                ship={ships["ship" + idx]} 
+                                ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                         </div>
@@ -240,7 +212,7 @@ export default function App () {
                             <Nav className="flex-column">
                                 <Nav.Item key={0} className="tab">
                                     <Nav.Link key={0} eventKey={0} className="right-tabs tab">
-                                        <img src={ships["ship0"].imgsrc_chibi} width={75} height={70}/>
+                                        <img src={ships[0].imgsrc_chibi} width={75} height={70}/>
                                     </Nav.Link>
                                 </Nav.Item>
                             </Nav>
