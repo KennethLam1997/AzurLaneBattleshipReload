@@ -15,7 +15,7 @@ const EQUIPMENTLIMIT = 5
 
 export function ShipBox({ ship, handleCallBack }) {
     const generateOptions = () => {
-        const data = sessionStorage.getItem('shipNames').split(",")
+        const data = JSON.parse(sessionStorage.getItem('shipNames'))
         let options = []
 
         data.forEach((ele) => {
@@ -131,19 +131,14 @@ export function ShipBox({ ship, handleCallBack }) {
 }
 
 export function StatsBox({ ship, handleCallBack }) {
-    const [level, setLevel] = useState(0)
     const levelMap = [1, 100, 120, 125]
-
+    const [level, setLevel] = useState(ship !== undefined ? levelMap.indexOf(ship.level) : 0)
+    
     useEffect(() => {
         handleCallBack({
             "level": levelMap[level]
         })
     }, [level])
-
-    // For pesky undefined ship state errors.
-    if (ship == undefined) { 
-        ship = {level: 1, level1: {}, level100: {}, level120: {}, level125: {}} 
-    }
 
     return (
         <div className="box centered-horizontal" style={{top: "10px"}}>
@@ -346,13 +341,8 @@ export function GearBox({ ship, handleCallBack }) {
 }
 
 export function GearStatsBox({ ship, handleCallBack }) {
-    const [enhance, setEnhance] = useState(0)
     const enhanceMap = [0, 10]
-
-    // For pesky undefined ship state errors.
-    if (ship == undefined) { 
-        ship = {weapon: {enhance0: {}, enhance10: {}}} 
-    }
+    const [enhance, setEnhance] = useState(ship.weapon !== undefined ? enhanceMap.indexOf(ship.weapon.enhance) : 0)
 
     useEffect(() => {
         handleCallBack({
@@ -520,7 +510,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     }
 
     const generateOptions = () => {
-        const data = sessionStorage.getItem('weaponNames').split(",")
+        const data = JSON.parse(sessionStorage.getItem('weaponNames'))
         let options = []
 
         data.forEach((ele) => {

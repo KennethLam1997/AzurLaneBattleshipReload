@@ -19,9 +19,9 @@ if (import.meta.env.DEV) {
 export const ROWLIMIT = 3
 
 export default function App () {
-    const [currentTab, setCurrentTab] = useState(0)
-    const [shipIdx, setShipIdx] = useState(1)
-    const [ships, setShips] = useState({
+    const [currentTab, setCurrentTab] = useState(JSON.parse(sessionStorage.getItem('currentTab')) || 0)
+    const [shipIdx, setShipIdx] = useState(JSON.parse(sessionStorage.getItem('shipIdx')) || 1)
+    const [ships, setShips] = useState(JSON.parse(sessionStorage.getItem('data')) || {
         "ship0": {
             imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
             level: 1,
@@ -53,6 +53,15 @@ export default function App () {
 
     //     dynamicProps["ship" + i] = this.state["ship" + i]
     // }
+
+    useEffect(() => {
+        sessionStorage.setItem('currentTab', JSON.stringify(currentTab))
+        sessionStorage.setItem('shipIdx', JSON.stringify(shipIdx))
+    }, [currentTab, shipIdx])
+
+    useEffect(() => {
+        sessionStorage.setItem('data', JSON.stringify(ships))
+    }, [ships])
 
     function addShipStats (i, state) {
         // Since callbacks don't use current state, use ref.
@@ -87,23 +96,23 @@ export default function App () {
     }
 
     function addNewTab() {
-        let newShip = {...ships}
-        newShip["ship" + (shipIdx)] = {
-            imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
-            level: 1,
-            level1: {}, 
-            level100: {}, 
-            level120: {}, 
-            level125: {}, 
-            weapon: {
-                imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
-                enhance0: {}, 
-                enhance10: {},
-                enhance: 0
+        setShips({
+            ...ships,
+            ["ship" + shipIdx]: {
+                imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
+                level: 1,
+                level1: {}, 
+                level100: {}, 
+                level120: {}, 
+                level125: {}, 
+                weapon: {
+                    imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
+                    enhance0: {}, 
+                    enhance10: {},
+                    enhance: 0
+                }
             }
-        } 
-
-        setShips(newShip)
+        })
         setCurrentTab(shipIdx)
         setShipIdx(shipIdx + 1)
     }
@@ -231,7 +240,7 @@ export default function App () {
                             <Nav className="flex-column">
                                 <Nav.Item key={0} className="tab">
                                     <Nav.Link key={0} eventKey={0} className="right-tabs tab">
-                                        <img src={ships["ship0"].imgsrc_chibi} width={75} height={70} style={{float: "right"}}/>
+                                        <img src={ships["ship0"].imgsrc_chibi} width={75} height={70}/>
                                     </Nav.Link>
                                 </Nav.Item>
                             </Nav>

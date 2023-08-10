@@ -13,7 +13,7 @@ async function fetchNames(type) {
 
     if (!json) throw new Error(type + " could not be loaded!")
 
-    sessionStorage.setItem(type + "Names", json.toString())    
+    sessionStorage.setItem(type + "Names", JSON.stringify(json))    
 }
 
 document.addEventListener('DOMContentLoaded', 

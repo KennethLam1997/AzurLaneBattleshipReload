@@ -328,6 +328,10 @@ body {
     margin-left: 5px !important;
 }
 
+.right-tabs * {
+    float: right;
+}
+
 .nav-link.active.left-tabs {
     border-right: 5px solid blue !important;
     background-color: white !important;
