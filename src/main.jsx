@@ -16,14 +16,26 @@ async function fetchNames(type) {
     sessionStorage.setItem(type + "Names", JSON.stringify(json))    
 }
 
+async function fetchAll(type) {
+    const response = await fetch(HOST + "/" + type + "/all")
+    const json = await response.json()
+
+    if (!json) throw new Error(type + " could not be loaded!")
+
+    sessionStorage.setItem("all" + type, JSON.stringify(json))       
+}
+
 document.addEventListener('DOMContentLoaded', 
     async function () {
-        if (!sessionStorage.getItem("shipNames") || !sessionStorage.getItem("weaponNames")) {
+        // let res = await fetch(HOST + "/weapon/all")
+        // console.log(await res)
+
+        if (!sessionStorage.getItem("allShip") || !sessionStorage.getItem("allWeapon")) {
             document.querySelector('body').style.visibility = 'hidden'
             document.querySelector('#loader').style.visibility = 'visible'
     
-            await fetchNames("ship")
-            await fetchNames("weapon")
+            await fetchAll("ship")
+            await fetchAll("weapon")
 
             document.querySelector('body').style.visibility = 'visible'
             document.querySelector('#loader').style.visibility = 'hidden'

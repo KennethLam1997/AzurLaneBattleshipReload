@@ -15,14 +15,27 @@ const EQUIPMENTLIMIT = 5
 
 export function ShipBox({ ship, handleCallBack }) {
     const generateOptions = () => {
-        const data = JSON.parse(sessionStorage.getItem('shipNames'))
-        let options = []
+        let allShips = JSON.parse(sessionStorage.getItem('allship'))
+        const rarityMap = {
+            null: 6,
+            "common": 5,
+            "rare": 4,
+            "elite": 3,
+            "super_rare": 2,
+            "ultra_rare": 1
+        }
+        const sortFn = (a,b) => {
+            let compareRarity = rarityMap[a.rarity] - rarityMap[b.rarity]
+            let compareName = a.name.localeCompare(b.name)
+            return compareRarity || compareName
+        }
 
-        data.forEach((ele) => {
-            options.push(<option key={ele} value={ele}>{ele}</option>)
+        allShips = allShips.sort(sortFn)
+        let options = [<option key="" value="" selected={true} disabled hidden></option>]
+
+        allShips.forEach((ele) => {
+            options.push(<option className={ele.rarity} key={ele.name} value={ele.name}>{ele.name}</option>)
         })
-    
-        options.push(<option key="" value="" defaultValue={true} disabled hidden></option>)
 
         return options
     }
@@ -510,14 +523,32 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     }
 
     const generateOptions = () => {
-        const data = JSON.parse(sessionStorage.getItem('weaponNames'))
-        let options = []
+        const allWeapons = JSON.parse(sessionStorage.getItem('allweapon'))
+        const allWeaponTypes = ["HE", "AP", "Normal", "AP+", "AP^", "AP*", "SAP", "AP4", "APMKD", "Sanshikidan"]
+        const rarityMap = {
+            null: 6,
+            "common": 5,
+            "rare": 4,
+            "elite": 3,
+            "super_rare": 2,
+            "ultra_rare": 1
+        }
+        const prefixMap = {"Twin": 4, "Triple": 3, "Quadruple": 2}
+        const sortFn = (a, b) => {
+            let compareRarity = rarityMap[a.rarity] - rarityMap[b.rarity]
+            let comparePrefix = prefixMap[a.name.match(/(Twin|Triple|Quadruple)/)[0]] - prefixMap[b.name.match(/(Twin|Triple|Quadruple)/)[0]]
+            let compareName = a.name.localeCompare(b.name)
+            return compareRarity || comparePrefix || compareName
+        }
 
-        data.forEach((ele) => {
-            options.push(<option key={ele} value={ele}>{ele}</option>)
+        let options = [<option key="" value="" selected={true} disabled hidden></option>]
+
+        allWeaponTypes.forEach(type => {
+            let suboptions = []
+            const weaponsOfType = allWeapons.filter(val => val.enhance0.ammoType === type).sort(sortFn)
+            weaponsOfType.forEach(val => suboptions.push(<option className={val.rarity} key={val.name} value={val.name}>{val.name}</option>))
+            options.push(<optgroup key={type} label={"===== " + type + " Guns ====="}>{suboptions}</optgroup>)
         })
-
-        options.push(<option key="" value="" defaultValue={true} disabled hidden></option>)
 
         return options
     }
@@ -542,9 +573,6 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
                     >
                         {generateOptions()}
                     </select>
-                    <div>
-
-                    </div>
                 </Popover.Body>
             </Popover>            
         )
