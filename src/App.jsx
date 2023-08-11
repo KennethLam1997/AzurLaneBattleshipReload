@@ -6,17 +6,9 @@ import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Row from 'react-bootstrap/Row';
 
-import ShipTableRow from "./shipTableRow.jsx"
 import TimingGraph from './plotter.jsx';
 import { ShipBox, StatsBox, BonusStatsBox, GearBox, GearStatsBox, CalculationBox } from "./shipUI.jsx";
 
-let HOST = 'https://xanderking-azurlane.onrender.com'
-
-if (import.meta.env.DEV) {
-    HOST = import.meta.env.VITE_BASEURL
-}
-
-export const ROWLIMIT = 3
 const TEMPLATETAB = {
     imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
     level: 1,
@@ -33,31 +25,17 @@ const TEMPLATETAB = {
 }
 
 export default function App () {
-    const [ships, setShips] = useState(JSON.parse(sessionStorage.getItem('data')) || [TEMPLATETAB])
-    const [currentTab, setCurrentTab] = useState(JSON.parse(sessionStorage.getItem('currentTab')) || 0)
+    const [ships, setShips] = useState(JSON.parse(localStorage.getItem('data')) || [TEMPLATETAB])
+    const [currentTab, setCurrentTab] = useState(JSON.parse(localStorage.getItem('currentTab')) || 0)
     const shipRef = useRef()
     shipRef.current = ships
-    
-    // let rows = []
-    // let dynamicProps = {}
-    
-    // for (let i = 1; i <= ROWLIMIT; i++) {
-    //     rows.push(
-    //         <ShipTableRow 
-    //             key={i} 
-    //             handleCallBack={(state) => handleCallBack(state)}
-    //         />
-    //     )
-
-    //     dynamicProps["ship" + i] = this.state["ship" + i]
-    // }
 
     useEffect(() => {
-        sessionStorage.setItem('currentTab', JSON.stringify(currentTab))
+        localStorage.setItem('currentTab', JSON.stringify(currentTab))
     }, [currentTab])
 
     useEffect(() => {
-        sessionStorage.setItem('data', JSON.stringify(ships))
+        localStorage.setItem('data', JSON.stringify(ships))
     }, [ships])
 
     function addShipStats (i, state) {
@@ -90,47 +68,6 @@ export default function App () {
     }
     
     function createTabs() {
-        // const tabs = [...Array(shipIdx)].map((ele, idx) => {
-        //     return (
-        //         <Tab 
-        //             key={idx}
-        //             eventKey={"ship" + idx} 
-        //             title={<span><img src={ships["ship" + idx].imgsrc_chibi} width={75} height={70}/></span>}
-        //         >
-        //             <div className="content-container">
-        //                 <div className="left-container">
-        //                     <ShipBox 
-        //                         ship={ships["ship" + idx]} 
-        //                         handleCallBack={(state) => addShipStats(idx, state)}
-        //                     />
-        //                     <GearBox
-        //                         ship={ships["ship" + idx]} 
-        //                         handleCallBack={(state) => addShipStats(idx, state)}
-        //                     />
-        //                     <CalculationBox
-        //                         ship={ships["ship" + idx]} 
-        //                         handleCallBack={(state) => addShipStats(idx, state)}
-        //                     />
-        //                 </div>
-        //                 <div className="right-container">
-        //                     <StatsBox 
-        //                         ship={ships["ship" + idx]} 
-        //                         handleCallBack={(state) => addShipStats(idx, state)}
-        //                     />
-        //                     <BonusStatsBox 
-        //                         ship={ships["ship" + idx]} 
-        //                         handleCallBack={(state) => addShipStats(idx, state)}
-        //                     />
-        //                     <GearStatsBox
-        //                         ship={ships["ship" + idx]} 
-        //                         handleCallBack={(state) => addShipStats(idx, state)}
-        //                     />
-        //                 </div>
-        //             </div>
-        //         </Tab>
-        //     )
-        // })
-
         const tabs = [...Array(ships.length)].map((ele, idx) => {
             return (
                 <Nav.Item key={idx} className="tab">
@@ -206,39 +143,26 @@ export default function App () {
                         <Col className="tab-content">
                             <Tab.Content>
                                 {tabContents}
+                                <Tab.Pane key={-2} eventKey={-2}>
+                                    <div className="content-container">
+                                        <TimingGraph ships={ships}/>
+                                    </div>
+                                </Tab.Pane>
                             </Tab.Content>
                         </Col>
-                        {/* <Col className="tab-column">
+                        <Col className="tab-column">
                             <Nav className="flex-column">
-                                <Nav.Item key={0} className="tab">
-                                    <Nav.Link key={0} eventKey={0} className="right-tabs tab">
-                                        <img src={ships[0].imgsrc_chibi} width={75} height={70}/>
+                                <Nav.Item key={-2} className="tab">
+                                    <Nav.Link key={-2} eventKey={-2} className="right-tabs tab">
+                                        <h6 style={{marginTop: "10px"}}>Graph?</h6>
                                     </Nav.Link>
                                 </Nav.Item>
                             </Nav>
-                        </Col> */}
+                        </Col>
                     </Row>
                 </Tab.Container>
             </div>
         )
-
-        // return (
-        //     <div className="main-container">
-        //         <Tabs
-        //             defaultActiveKey="ship0"
-        //             className="mb-3"
-        //             onSelect={(key) => handleOnSelect(key)}
-        //         >
-        //             {tabs}
-        //             <Tab
-        //                 key={-1}
-        //                 eventKey={-1} 
-        //                 title={"Add a new tab?"}
-        //             >
-        //             </Tab>
-        //         </Tabs>
-        //     </div>            
-        // )
     }
 
     return (

@@ -5,17 +5,11 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { InputGroup, OverlayTrigger, Popover } from "react-bootstrap";
 
-let HOST = 'https://xanderking-azurlane.onrender.com'
-
-if (import.meta.env.DEV) {
-    HOST = import.meta.env.VITE_BASEURL
-}
-
 const EQUIPMENTLIMIT = 5
 
 export function ShipBox({ ship, handleCallBack }) {
     const generateOptions = () => {
-        let allShips = JSON.parse(sessionStorage.getItem('allship'))
+        let allShips = JSON.parse(localStorage.getItem('allship'))
         const rarityMap = {
             null: 6,
             "common": 5,
@@ -55,12 +49,8 @@ export function ShipBox({ ship, handleCallBack }) {
     )
 
     const updateShip = async (name) => {
-        // const response = await fetch(HOST + "/ship/" + encodeURIComponent(name))
-        // const newShip = await response.json()
-
-        const allShips = JSON.parse(sessionStorage.getItem('allship'))
-        const idx = allShips.map(val => val.name).indexOf(name)
-        const newShip = allShips[idx]
+        const allShips = JSON.parse(localStorage.getItem('allship'))
+        const newShip = allShips.find(val => val.name == name)
 
         if (!newShip) throw new Error("Failed to load ship information!")
 
@@ -527,7 +517,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     }
 
     const generateOptions = () => {
-        const allWeapons = JSON.parse(sessionStorage.getItem('allweapon'))
+        const allWeapons = JSON.parse(localStorage.getItem('allweapon'))
         const allWeaponTypes = ["HE", "AP", "Normal", "AP+", "AP^", "AP*", "SAP", "AP4", "APMKD", "Sanshikidan"]
         const rarityMap = {
             null: 6,
@@ -617,9 +607,8 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     }
 
     const updateWeapon = async (name) => {
-        const allWeapons = JSON.parse(sessionStorage.getItem('allweapon'))
-        const idx = allWeapons.map(val => val.name).indexOf(name)
-        const newWeapon = allWeapons[idx]
+        const allWeapons = JSON.parse(localStorage.getItem('allweapon'))
+        const newWeapon = allWeapons.find(val => val.name == name)
 
         if (!newWeapon) throw new Error("Weapon could not be loaded!")
 

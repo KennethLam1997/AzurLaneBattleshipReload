@@ -1,50 +1,38 @@
-import React, { Component, createRef } from "react";
+import { useState, createRef, useEffect } from "react"
 import * as d3 from "d3"
-import { ROWLIMIT } from "./App"
 
-class TimingGraph extends Component {
-    constructor(props) {
-        super(props)
+function TimingGraph({ ships }) {
+    const [battleDuration, setBattleDuration] = useState(150) // in seconds
+    const [barrageDuration, setBarrageDuration] = useState(5) // in seconds
+    const [helena, setHelena] = useState(false)
+    const [helenaCooldown, setHelenaCooldown] = useState(20) // in seconds
+    const [helenaDuration, setHelenaDuration] = useState(10) // in seconds
+    const fullWidth = 700
+    const fullHeight = 872
+    const margin = {top: 30, right: 30, bottom: 70, left: 60}
+    const width = fullWidth - margin.left - margin.right
+    const height = fullHeight - margin.top - margin.bottom
+    const ref = createRef()
 
-        this.state = {
-            battleDuration: 150, // in seconds.
-            barrageDuration: 5, // in seconds
-            helena: false,
-            helenaCooldown: 20, // in seconds
-            helenaDuration: 10 // in seconds
-        }
-        
-        this.fullWidth = 700
-        this.fullHeight = 872
-        this.margin = {top: 30, right: 30, bottom: 70, left: 60}
-        this.width = this.fullWidth - this.margin.left - this.margin.right
-        this.height = this.fullHeight - this.margin.top - this.margin.bottom
+    useEffect(() => {
+        d3.select(ref.current).selectAll("*").remove()
+        drawGraph() 
+    })
 
-        this.ref = createRef()
-    }
-
-    componentDidMount() {
-        this.drawGraph()
-    }
-
-    componentDidUpdate() {
-        d3.select(this.ref.current).selectAll("*").remove()
-        this.drawGraph()
-    }
-
-    drawGraph() {
+    const drawGraph = () => {
         let data = []
         let start, end = 0
 
-        for (let i = 1; i <= ROWLIMIT; i++) {
-            const { name, cooldown } = this.props["ship" + i]
+        for (let i = 0; i < ships.length; i++) {
+            const name = ships[i].name
+            const cooldown = parseFloat(ships[i].cooldown)
 
             if (name == '' || cooldown == 0) continue
 
             start = cooldown
-            end = start + this.state.barrageDuration
+            end = start + barrageDuration
 
-            while (start <= this.state.battleDuration) {
+            while (start <= battleDuration) {
                 data.push({
                     name: name,
                     start: start,
@@ -54,86 +42,82 @@ class TimingGraph extends Component {
                 })
 
                 start += cooldown
-                end = start + this.state.barrageDuration
+                end = start + barrageDuration
             }
         }
 
-        // Specifically for self-reference issues in d3.
-        // All class reference should use self instead.
-        const self = this;
-
         // Graphing Area
-        const svg = d3.select(self.ref.current)
+        const svg = d3.select(ref.current)
             .append("svg")
-                .attr("width", self.fullWidth)
-                .attr("height", self.fullHeight)
+                .attr("width", fullWidth)
+                .attr("height", fullHeight)
             .append("g")
                 .attr(
                     "transform",
-                    "translate(" + self.margin.left + "," + self.margin.top + ")"
+                    "translate(" + margin.left + "," + margin.top + ")"
                 );
 
         // Title
-        svg.append("text")
-            .attr("text-anchor", "middle")
-            .attr("x", self.width / 2)
-            .attr("y", 0 - (self.margin.top / 2))
-            .style("font-size", "20px")
-            .text("Timing Graph");
+        // svg.append("text")
+        //     .attr("text-anchor", "middle")
+        //     .attr("x", width / 2)
+        //     .attr("y", 0 - (margin.top / 2))
+        //     .style("font-size", "20px")
+        //     .text("Timing Graph");
         
         // X-Axis
         const x = d3.scaleBand()
-            .range([0, self.width])
+            .range([0, width])
             .domain(data.map(function(d) { return d.name }))
             .padding([0.2]);
 
         svg.append("g")
-            .attr("transform", "translate(0, " + self.height + ")")
+            .attr("transform", "translate(0, " + height + ")")
             .call(d3.axisBottom(x));
         
         // X-Axis Label
         svg.append("text")
                 .attr("text-anchor", "middle")
-                .attr("x", self.width / 2)
-                .attr("y", self.height + 50)
+                .attr("x", width / 2)
+                .attr("y", height + 50)
                 .text("Ships");
 
         // Y-Axis
         const y = d3.scaleLinear()
-            .domain([0, self.state.battleDuration])
-            .range([self.height, 0]);
+            .domain([0, battleDuration])
+            .range([height, 0]);
         
         svg.append("g")
             .call(d3.axisLeft(y));
 
         // Y-Axis Label
         svg.append("g")
-            .attr("transform", "translate(-30, " + self.height / 2 + ")")
+            .attr("transform", "translate(-30, " + height / 2 + ")")
             .append("text")
                 .attr("text-anchor", "middle")
                 .attr("transform", "rotate(-90)")
                 .text("Time (s)");
 
         // Adding Helena
-        if (self.state.helena) {
-            let start = self.state.helenaCooldown
-            let end = start + self.state.helenaDuration
+        if (helena) {
+            let start = helenaCooldown
+            let end = start + helenaDuration
 
-            while (start <= self.state.battleDuration) {
+            while (start <= battleDuration) {
                 svg.append("rect")
                     .attr("x", 0)
                     .attr("y", function(d) { 
-                        if (end > self.state.battleDuration) return 0
+                        if (end > battleDuration) return 0
                         return y(end) })
-                    .attr("width", self.width)
+                    .attr("width", width)
                     .attr("height", function(d) { 
-                        if (end > self.state.battleDuration) return y(start) - y(self.state.battleDuration)
+                        if (end > battleDuration) return y(start) - y(battleDuration)
                         return y(start) - y(end) })
                     .style("fill-opacity", 0.5)
                     .style("fill", "grey");
 
-                start += self.state.helenaCooldown
-                end = start + self.state.helenaDuration
+                start += helenaCooldown
+                end = start + helenaDuration
             }
         }
 
@@ -145,18 +129,18 @@ class TimingGraph extends Component {
                 .attr("id", "shipRect")
                 .attr("x", function(d) { return x(d.name) })
                 .attr("y", function(d) { 
-                    if (d.end > self.state.battleDuration) return 0
+                    if (d.end > battleDuration) return 0
                     return y(d.end)
                 })
                 .attr("width", x.bandwidth())
                 .attr("height", function(d) { 
-                    if (d.end > self.state.battleDuration) return y(d.start) - y(self.state.battleDuration)
+                    if (d.end > battleDuration) return y(d.start) - y(battleDuration)
                     return y(d.start) - y(d.end) 
                 })
                 .attr("fill", "green");
 
         // Tooltips on mouseover
-        const tooltip = d3.select(self.ref.current)
+        const tooltip = d3.select(ref.current)
             .append("div")
                 .style("position", "absolute")
                 .style("visibility", "hidden")
@@ -166,7 +150,7 @@ class TimingGraph extends Component {
                 .style("border-radius", "5px")
                 .style("padding", "10px");
 
-        const mouseover = function(event, data) {
+        const mouseover = (event, data) => {
             let { name, start, end, cooldown, index } = event.target.__data__
             let barrageOverlap = {}
 
@@ -175,11 +159,11 @@ class TimingGraph extends Component {
                     let overlap = 0
 
                     if (end >= data[i].end) {
-                        let newEnd = Math.min(self.state.battleDuration, data[i].end)
+                        let newEnd = Math.min(battleDuration, data[i].end)
                         overlap = Math.max(0, Math.min(newEnd - data[i].start, newEnd - start))
                     }
                     else {
-                        let newEnd = Math.min(self.state.battleDuration, end)
+                        let newEnd = Math.min(battleDuration, end)
                         overlap = Math.max(0, Math.min(newEnd - start, newEnd - data[i].start))
                     }
 
@@ -194,10 +178,11 @@ class TimingGraph extends Component {
             start = start.toFixed(2)
             end = end.toFixed(2)
 
-            let tooltipHTML = name + "'s #" + index + " barrage<br><br>" + start + "s → " + Math.min(end, self.state.battleDuration) + "s<br><br>"
+            let tooltipHTML = name + "'s #" + index + " barrage<br><br>" + start + "s → " + Math.min(end, battleDuration) + "s<br><br>"
             
-            for (let i = 1; i <= ROWLIMIT; i++) {
-                const { name: propName, cooldown: propCooldown } = this.props["ship" + i]
+            for (let i = 0; i < ships.length; i++) {
+                const propName = ships[i].name
+                const propCooldown = parseFloat(ships[i].cooldown)
 
                 if (propName == '' || propCooldown == 0) continue
 
@@ -213,29 +198,33 @@ class TimingGraph extends Component {
 
             tooltip.style("visibility", "visible")
                 .html(tooltipHTML);
-        }.bind(self)
+        }
 
         d3.selectAll("#shipRect")
-            .on("mouseover", function(event) { return mouseover(event, data) })
-            .on("mousemove", function(event){ return tooltip.style("top", (event.pageY + 25)+"px").style("left",(event.pageX)+"px"); })
-            .on("mouseout", function() {return tooltip.style("visibility", "hidden"); });
+            .on("mouseover", event => mouseover(event, data))
+            .on("mousemove", event => tooltip.style("top", (event.pageY + 25)+"px").style("left",(event.pageX - 250)+"px"))
+            .on("mouseout", () => tooltip.style("visibility", "hidden"));
     }
 
-    render() {
-        return (
-            <>
-            <div ref={this.ref}></div>
+    return (
+        <>
+        <div className="graph-container">
+            <div className="tab-container-label">
+                <h2><center>Graph</center></h2>
+            </div>
+            <div ref={ref}></div>
+        </div>
+        <div className="graph-settings-container">
+            <div className="tab-container-label">
+                <h2><center>Config</center></h2>
+            </div>
             <div style={{flexDirection: "column"}}>
                 <label>
                     <b>Battle duration (s): </b>
                     <input
                         type="number"
-                        defaultValue={this.state.battleDuration}
-                        onChange={function(e) {
-                            this.setState({
-                                battleDuration: parseFloat(e.target.value) || 0
-                            })
-                        }.bind(this)}
+                        defaultValue={battleDuration}
+                        onChange={(e) => setBattleDuration(parseFloat(e.target.value) || 0)}
                     >
                     </input>
                 </label>
@@ -244,12 +233,8 @@ class TimingGraph extends Component {
                     <b>Barrage duration (s): </b>
                     <input
                         type="number"
-                        defaultValue={this.state.barrageDuration}
-                        onChange={function(e) {
-                            this.setState({
-                                barrageDuration: parseFloat(e.target.value) || 0
-                            })
-                        }.bind(this)}
+                        defaultValue={barrageDuration}
+                        onChange={(e) => setBarrageDuration(parseFloat(e.target.value) || 0)}
                     >
                     </input>
                 </label>
@@ -258,12 +243,8 @@ class TimingGraph extends Component {
                     <b>Highlight Helena Buff?: </b>
                     <input
                         type="checkbox"
-                        defaultChecked={this.state.helena}
-                        onChange={function(e) {
-                            this.setState({
-                                helena: e.target.checked
-                            })
-                        }.bind(this)}
+                        defaultChecked={helena}
+                        onChange={(e) => setHelena(e.target.checked)}
                     >
                     </input>
                 </label>
@@ -272,19 +253,15 @@ class TimingGraph extends Component {
                     <b>Helena Cooldown (s): </b>
                     <input
                         type="number"
-                        defaultValue={this.state.helenaCooldown}
-                        onChange={function(e) {
-                            this.setState({
-                                helenaCooldown: parseFloat(e.target.value) || 0
-                            })
-                        }.bind(this)}
+                        defaultValue={helenaCooldown}
+                        onChange={(e) => setHelenaCooldown(parseFloat(e.target.value) || 0)}
                     >
                     </input>                    
                 </label>
-            </div>
-            </>
-        )
-    }
+            </div>            
+        </div>
+        </>
+    )
 }
 
 export default TimingGraph

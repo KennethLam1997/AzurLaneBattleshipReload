@@ -1,8 +1,4 @@
-let HOST = 'https://xanderking-azurlane.onrender.com'
-
-if (import.meta.env.DEV) {
-    HOST = import.meta.env.VITE_BASEURL
-}
+const HOST = import.meta.env.DEV ? import.meta.env.VITE_BASEURL : 'https://xanderking-azurlane.onrender.com'
 
 import * as ReactDOM from 'react-dom/client';
 import App from "./App";
@@ -13,8 +9,8 @@ async function fetchAll(type) {
 
     if (!json) throw new Error(type + " could not be loaded!")
 
-    sessionStorage.setItem("all" + type, JSON.stringify(json))
-    sessionStorage.setItem(type + "DateAccessed", JSON.stringify(Date.now()))     
+    localStorage.setItem("all" + type, JSON.stringify(json))
+    localStorage.setItem(type + "DateAccessed", JSON.stringify(Date.now()))     
 }
 
 async function fetchUpdate(types) {
@@ -27,9 +23,9 @@ async function fetchUpdate(types) {
 
         if (!json) throw new Error(type + " could not be loaded!")
 
-        let dateAccessed = JSON.parse(sessionStorage.getItem(type + 'DateAccessed'))
+        let dateAccessed = JSON.parse(localStorage.getItem(type + 'DateAccessed'))
 
-        if (!sessionStorage.getItem("all" + type) || !dateAccessed || json.dateModified > dateAccessed) {
+        if (!localStorage.getItem("all" + type) || !dateAccessed || json.dateModified > dateAccessed) {
             await fetchAll(type)
             console.log("Updated to latest " + type + " info!")
         }
@@ -44,7 +40,7 @@ async function fetchUpdate(types) {
 
 document.addEventListener('DOMContentLoaded', 
     async function () {
-        fetchUpdate(["ship", "weapon"])
+        await fetchUpdate(["ship", "weapon"])
         
         root = ReactDOM.createRoot(document.getElementById('root'))
         root.render(<App/>)

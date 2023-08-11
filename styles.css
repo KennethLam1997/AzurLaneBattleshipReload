@@ -345,3 +345,22 @@ body {
     border-left: 5px solid blue !important;
     background-color: white !important;
 }
+
+.graph-container {
+    float: left;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 800px;
+    /* min-height: 800px !important */
+}
+
+.graph-settings-container {
+    float: right;
+    /* min-height: 825px !important; */
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 372px;
+    margin-left: auto;    
+}
