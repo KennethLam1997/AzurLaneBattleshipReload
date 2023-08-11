@@ -208,7 +208,7 @@ export default function App () {
                                 {tabContents}
                             </Tab.Content>
                         </Col>
-                        <Col className="tab-column">
+                        {/* <Col className="tab-column">
                             <Nav className="flex-column">
                                 <Nav.Item key={0} className="tab">
                                     <Nav.Link key={0} eventKey={0} className="right-tabs tab">
@@ -216,7 +216,7 @@ export default function App () {
                                     </Nav.Link>
                                 </Nav.Item>
                             </Nav>
-                        </Col>
+                        </Col> */}
                     </Row>
                 </Tab.Container>
             </div>
