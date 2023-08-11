@@ -55,8 +55,12 @@ export function ShipBox({ ship, handleCallBack }) {
     )
 
     const updateShip = async (name) => {
-        const response = await fetch(HOST + "/ship/" + encodeURIComponent(name))
-        const newShip = await response.json()
+        // const response = await fetch(HOST + "/ship/" + encodeURIComponent(name))
+        // const newShip = await response.json()
+
+        const allShips = JSON.parse(sessionStorage.getItem('allship'))
+        const idx = allShips.map(val => val.name).indexOf(name)
+        const newShip = allShips[idx]
 
         if (!newShip) throw new Error("Failed to load ship information!")
 
@@ -612,9 +616,10 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
         if (ship.weapon.enhance) return "+" + ship.weapon.enhance
     }
 
-    const updateWeapon = async (value) => {
-        const response = await fetch(HOST + "/weapon/" + encodeURIComponent(value))
-        const newWeapon = await response.json()
+    const updateWeapon = async (name) => {
+        const allWeapons = JSON.parse(sessionStorage.getItem('allweapon'))
+        const idx = allWeapons.map(val => val.name).indexOf(name)
+        const newWeapon = allWeapons[idx]
 
         if (!newWeapon) throw new Error("Weapon could not be loaded!")
 
