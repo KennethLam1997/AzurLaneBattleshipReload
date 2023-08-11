@@ -31,7 +31,7 @@ export function ShipBox({ ship, handleCallBack }) {
         }
 
         allShips = allShips.sort(sortFn)
-        let options = [<option key="" value="" selected={true} disabled hidden></option>]
+        let options = [<option key="" value="" defaultValue={true} disabled hidden></option>]
 
         allShips.forEach((ele) => {
             options.push(<option className={ele.rarity} key={ele.name} value={ele.name}>{ele.name}</option>)
@@ -45,7 +45,7 @@ export function ShipBox({ ship, handleCallBack }) {
             <Popover.Header>Add ship?</Popover.Header>
             <Popover.Body >
                 <select 
-                    value={ship.name}
+                    value={ship.name || ""}
                     onChange={(e) => updateShip(e.target.value)}
                 >
                     {generateOptions()}
@@ -304,7 +304,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                     <Form.Check 
                                         className="stat-input" 
                                         type="switch" 
-                                        defaultValue={ship.isOathed} 
+                                        defaultChecked={ship.isOathed} 
                                         onChange={(e) => handleCallBack({"isOathed": e.target.checked})}>
                                     </Form.Check>
                                 </Form.Label>                
@@ -541,7 +541,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
             return compareRarity || comparePrefix || compareName
         }
 
-        let options = [<option key="" value="" selected={true} disabled hidden></option>]
+        let options = [<option key="" value="" defaultValue={true} disabled hidden></option>]
 
         allWeaponTypes.forEach(type => {
             let suboptions = []
@@ -568,7 +568,7 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
                 <Popover.Header>Add equipment?</Popover.Header>
                 <Popover.Body>
                     <select 
-                        value={ship.weapon.name}
+                        value={ship.weapon.name || ""}
                         onChange={(e) => updateWeapon(e.target.value)}
                     >
                         {generateOptions()}
@@ -661,7 +661,7 @@ function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }) {
             return (
                 <>
                 <h5 className="bonus-stat-display" style={{float: "right", paddingRight: "5px"}}> +{field2}{suffix2}</h5> 
-                <h5 style={{float: "right"}}>{field}</h5>
+                <h5 style={{float: "right"}}>{field}{suffix}</h5>
                 </>
             )
         }
