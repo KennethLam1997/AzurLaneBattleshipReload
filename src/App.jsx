@@ -66,6 +66,16 @@ export default function App () {
         setShips(Object.assign([], ships, {[ships.length]: TEMPLATETAB}))
         setCurrentTab(ships.length)
     }
+
+    function closeTab(key) {
+        if (key >= 0) {
+            setShips(ships.toSpliced(key, 1))
+            
+            if (currentTab == key) {
+                setCurrentTab(currentTab - 1)
+            }
+        }
+    }
     
     function createTabs() {
         const tabs = [...Array(ships.length)].map((ele, idx) => {
@@ -115,6 +125,9 @@ export default function App () {
                                 ship={ships[idx]} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
+                        </div>
+                        <div className="tab-container-close" onClick={() => closeTab(idx)}>
+                            <h1><div className="centered-both">×</div></h1>
                         </div>
                     </div>                        
                 </Tab.Pane>
