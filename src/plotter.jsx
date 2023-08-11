@@ -1,5 +1,11 @@
 import { useState, createRef, useEffect } from "react"
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+import { InputGroup } from "react-bootstrap";
 import * as d3 from "d3"
+
+import { SingleStatBox, SingleStatInputBox } from "./inputBoxes";
 
 function TimingGraph({ ships }) {
     const [battleDuration, setBattleDuration] = useState(150) // in seconds
@@ -7,9 +13,9 @@ function TimingGraph({ ships }) {
     const [helena, setHelena] = useState(false)
     const [helenaCooldown, setHelenaCooldown] = useState(20) // in seconds
     const [helenaDuration, setHelenaDuration] = useState(10) // in seconds
-    const fullWidth = 700
-    const fullHeight = 872
-    const margin = {top: 30, right: 30, bottom: 70, left: 60}
+    const fullWidth = 800
+    const fullHeight = 900
+    const margin = {top: 30, right: 30, bottom: 60, left: 70}
     const width = fullWidth - margin.left - margin.right
     const height = fullHeight - margin.top - margin.bottom
     const ref = createRef()
@@ -52,10 +58,7 @@ function TimingGraph({ ships }) {
                 .attr("width", fullWidth)
                 .attr("height", fullHeight)
             .append("g")
-                .attr(
-                    "transform",
-                    "translate(" + margin.left + "," + margin.top + ")"
-                );
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // Title
         // svg.append("text")
@@ -80,6 +83,7 @@ function TimingGraph({ ships }) {
                 .attr("text-anchor", "middle")
                 .attr("x", width / 2)
                 .attr("y", height + 50)
+                .attr("class", "graph-label")
                 .text("Ships");
 
         // Y-Axis
@@ -92,10 +96,11 @@ function TimingGraph({ ships }) {
 
         // Y-Axis Label
         svg.append("g")
-            .attr("transform", "translate(-30, " + height / 2 + ")")
+            .attr("transform", "translate(-40, " + height / 2 + ")")
             .append("text")
                 .attr("text-anchor", "middle")
                 .attr("transform", "rotate(-90)")
+                .attr("class", "graph-label")
                 .text("Time (s)");
 
         // Adding Helena
@@ -114,7 +119,7 @@ function TimingGraph({ ships }) {
                         if (end > battleDuration) return y(start) - y(battleDuration)
                         return y(start) - y(end) })
                     .style("fill-opacity", 0.5)
-                    .style("fill", "grey");
+                    .style("fill", "white");
 
                 start += helenaCooldown
                 end = start + helenaDuration
@@ -202,7 +207,17 @@ function TimingGraph({ ships }) {
 
         d3.selectAll("#shipRect")
             .on("mouseover", event => mouseover(event, data))
-            .on("mousemove", event => tooltip.style("top", (event.pageY + 25)+"px").style("left",(event.pageX - 250)+"px"))
+            .on("mousemove", (event) => {
+                // Constrain tooltip to inside graphing area.
+                let tooltipX = event.layerX + 25
+                let tooltipY = event.layerY + 25
+                const tooltipWidth = tooltip.node().getBoundingClientRect().width
+                const tooltipHeight = tooltip.node().getBoundingClientRect().height
+
+                if (event.layerX > (fullWidth / 2)) tooltipX -= tooltipWidth + 50
+                if (event.layerY > (fullHeight / 2)) {tooltipY -= tooltipHeight + 50;}
+
+                return tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px")})
             .on("mouseout", () => tooltip.style("visibility", "hidden"));
     }
 
@@ -212,52 +227,61 @@ function TimingGraph({ ships }) {
             <div className="tab-container-label">
                 <h2><center>Graph</center></h2>
             </div>
-            <div ref={ref}></div>
+            <div className="graph" ref={ref}></div>
         </div>
         <div className="graph-settings-container">
             <div className="tab-container-label">
                 <h2><center>Config</center></h2>
             </div>
-            <div style={{flexDirection: "column"}}>
-                <label>
-                    <b>Battle duration (s): </b>
-                    <input
-                        type="number"
-                        defaultValue={battleDuration}
-                        onChange={(e) => setBattleDuration(parseFloat(e.target.value) || 0)}
-                    >
-                    </input>
-                </label>
-                <br></br>
-                <label>
-                    <b>Barrage duration (s): </b>
-                    <input
-                        type="number"
-                        defaultValue={barrageDuration}
-                        onChange={(e) => setBarrageDuration(parseFloat(e.target.value) || 0)}
-                    >
-                    </input>
-                </label>
-                <br></br>
-                <label>
-                    <b>Highlight Helena Buff?: </b>
-                    <input
-                        type="checkbox"
-                        defaultChecked={helena}
-                        onChange={(e) => setHelena(e.target.checked)}
-                    >
-                    </input>
-                </label>
-                <br></br>
-                <label>
-                    <b>Helena Cooldown (s): </b>
-                    <input
-                        type="number"
-                        defaultValue={helenaCooldown}
-                        onChange={(e) => setHelenaCooldown(parseFloat(e.target.value) || 0)}
-                    >
-                    </input>                    
-                </label>
+            <div className="box centered-horizontal" style={{width: "372px"}}>
+                <div className="box-inner">
+                    <Form>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <SingleStatInputBox
+                                    label="Battle Duration (s)"
+                                    value={battleDuration}
+                                    onChange={(e) => setBattleDuration(parseFloat(e.target.value) || 0)}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <SingleStatInputBox
+                                    label="Barrage Duration (s)"
+                                    value={barrageDuration}
+                                    onChange={(e) => setBarrageDuration(parseFloat(e.target.value) || 0)}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <InputGroup className="box-sub-inner">
+                                    <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
+                                        <h5 style={{float: "left"}}>
+                                            Display Helena?
+                                        </h5>
+                                        <Form.Check 
+                                            className="stat-input" 
+                                            type="switch" 
+                                            defaultChecked={helena} 
+                                            onChange={(e) => setHelena(e.target.checked)}>
+                                        </Form.Check>
+                                    </Form.Label>                
+                                </InputGroup>
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <SingleStatInputBox
+                                    label="Helena Cooldown (s)"
+                                    value={helenaCooldown}
+                                    onChange={(e) => setHelenaCooldown(parseFloat(e.target.value) || 0)}
+                                />
+                            </Col>
+                        </Form.Group>
+                    </Form>
+                </div>
             </div>            
         </div>
         </>

@@ -5,6 +5,8 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { InputGroup, OverlayTrigger, Popover } from "react-bootstrap";
 
+import { SingleStatBox, SingleStatInputBox } from "./inputBoxes";
+
 const EQUIPMENTLIMIT = 5
 
 export function ShipBox({ ship, handleCallBack }) {
@@ -275,7 +277,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD"
                                 value={ship.bonusReload}
-                                setValue={(e) => handleCallBack({"bonusReload": e.target.value})}
+                                onChange={(e) => handleCallBack({"bonusReload": e.target.value})}
                             />
                         </Col>
                         <Col>
@@ -283,7 +285,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD (%)"
                                 value={ship.bonusPercentReload}
-                                setValue={(e) => handleCallBack({"bonusPercentReload": e.target.value})}
+                                onChange={(e) => handleCallBack({"bonusPercentReload": e.target.value})}
                             />
                         </Col>
                         <Col>
@@ -641,56 +643,3 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     )
 }
 
-function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }) {
-    const displayIcon = () => {
-        if (iconsrc) return (
-            <InputGroup.Text className="stat-icon-wrapper">
-                <img className="stat-icon" src={iconsrc}></img>
-            </InputGroup.Text>
-        )
-    }
-
-    const displayFields = () => {
-        if (field2) {
-            return (
-                <>
-                <h5 className="bonus-stat-display" style={{float: "right", paddingRight: "5px"}}> +{field2}{suffix2}</h5> 
-                <h5 style={{float: "right"}}>{field}{suffix}</h5>
-                </>
-            )
-        }
-        else if (field != undefined) {
-            return (<h5 style={{float: "right", paddingRight: "5px"}}>{field}{suffix}</h5>)
-        }
-    }
-
-    return (
-        <InputGroup className="box-sub-inner">
-            {displayIcon()}
-            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
-                <h5 style={{float: "left"}}>
-                    {label}
-                </h5>
-                {displayFields()}
-            </Form.Label>                            
-        </InputGroup>
-    )
-}
-
-function SingleStatInputBox({ iconsrc, label, value, setValue }) {
-    return (
-        <InputGroup className="box-sub-inner">
-            <InputGroup.Text className="stat-icon-wrapper">
-                <img className="stat-icon" src={iconsrc}></img>
-            </InputGroup.Text>
-            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
-                <h5 style={{float: "left"}}>
-                    {label}
-                </h5>
-
-                <Form.Control className="stat-input" defaultValue={value} onChange={setValue}>
-                </Form.Control>
-            </Form.Label>                
-        </InputGroup>
-    )
-}

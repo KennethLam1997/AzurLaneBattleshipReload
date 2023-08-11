@@ -362,9 +362,8 @@ body {
     float: left;
     position: relative;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
     width: 800px;
-    /* min-height: 800px !important */
 }
 
 .graph-settings-container {
@@ -375,4 +374,23 @@ body {
     overflow-y: auto;
     width: 372px;
     margin-left: auto;    
+}
+
+g {
+    color: white !important;
+}
+
+g text {
+    color: white !important;
+    font-family: azurLane !important;
+    font-size: 14px !important;
+    fill: white !important;
+}
+
+.graph-label {
+    font-size: 18px !important;
+}
+
+.stat-input.form-control {
+    width: 50px !important;
 }
