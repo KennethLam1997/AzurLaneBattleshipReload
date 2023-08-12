@@ -368,11 +368,11 @@ body {
 
 .graph-settings-container {
     float: right;
-    /* min-height: 825px !important; */
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
     width: 372px;
+    height: 900px;
     margin-left: auto;    
 }
 
@@ -393,4 +393,39 @@ g text {
 
 .stat-input.form-control {
     width: 50px !important;
+}
+
+.ship-color {
+    width: 40px;
+    height: 14px;
+    border-radius: 2px;
+}
+
+.swatch {
+    float: right;
+    margin-top: 6px;
+    margin-right: 5px;
+    width: 50px;
+    height: fit-content;
+    border: 1px solid white;
+    padding: 5px;
+    background: rgb(135, 139, 148);
+    border-radius: 0.375rem;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.1);
+    display: flex;
+    cursor: pointer;
+}
+
+.popover-color {
+    position: absolute;
+    z-index: 2;
+    left: 50px;
+}
+
+.cover-color {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
 }

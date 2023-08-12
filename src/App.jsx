@@ -78,17 +78,17 @@ export default function App () {
     }
     
     function createTabs() {
-        const tabs = [...Array(ships.length)].map((ele, idx) => {
+        const tabs = ships.map((ele, idx) => {
             return (
                 <Nav.Item key={idx} className="tab">
                     <Nav.Link key={idx} eventKey={idx} className="left-tabs tab">
-                        <img src={ships[idx].imgsrc_chibi} width={75} height={70}/>
+                        <img src={ele.imgsrc_chibi} width={75} height={70}/>
                     </Nav.Link>
                 </Nav.Item>
             )
         })
 
-        const tabContents = [...Array(ships.length)].map((ele, idx) => {
+        const tabContents = ships.map((ele, idx) => {
             return (
                 <Tab.Pane key={idx} eventKey={idx}>
                     <div className="content-container">
@@ -97,15 +97,15 @@ export default function App () {
                                 <h2><center>Ship</center></h2>
                             </div>
                             <ShipBox 
-                                ship={ships[idx]} 
+                                ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <GearBox
-                                ship={ships[idx]} 
+                                ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <CalculationBox
-                                ship={ships[idx]} 
+                                ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                         </div>
@@ -114,15 +114,15 @@ export default function App () {
                                 <h2><center>Stats</center></h2>
                             </div>
                             <StatsBox 
-                                ship={ships[idx]} 
+                                ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <BonusStatsBox 
-                                ship={ships[idx]} 
+                                ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <GearStatsBox
-                                ship={ships[idx]} 
+                                ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                         </div>

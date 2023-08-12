@@ -4,21 +4,29 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { InputGroup } from "react-bootstrap";
 import * as d3 from "d3"
+import { SketchPicker } from 'react-color'
 
 import { SingleStatBox, SingleStatInputBox } from "./inputBoxes";
 
-function TimingGraph({ ships }) {
+export default function TimingGraph({ ships }) {
+    const [colorMap, setColorMap] = useState(JSON.parse(localStorage.getItem('colorMap')) || {})
+
     const [battleDuration, setBattleDuration] = useState(150) // in seconds
     const [barrageDuration, setBarrageDuration] = useState(5) // in seconds
     const [helena, setHelena] = useState(false)
     const [helenaCooldown, setHelenaCooldown] = useState(20) // in seconds
     const [helenaDuration, setHelenaDuration] = useState(10) // in seconds
+
     const fullWidth = 800
     const fullHeight = 900
     const margin = {top: 30, right: 30, bottom: 60, left: 70}
     const width = fullWidth - margin.left - margin.right
     const height = fullHeight - margin.top - margin.bottom
     const ref = createRef()
+
+    useEffect(() => {
+        localStorage.setItem("colorMap", JSON.stringify(colorMap))
+    }, [colorMap])
 
     useEffect(() => {
         d3.select(ref.current).selectAll("*").remove()
@@ -101,7 +109,7 @@ function TimingGraph({ ships }) {
                 .attr("text-anchor", "middle")
                 .attr("transform", "rotate(-90)")
                 .attr("class", "graph-label")
-                .text("Time (s)");
+                .text("Battle Time (s)");
 
         // Adding Helena
         if (helena) {
@@ -142,7 +150,7 @@ function TimingGraph({ ships }) {
                     if (d.end > battleDuration) return y(d.start) - y(battleDuration)
                     return y(d.start) - y(d.end) 
                 })
-                .attr("fill", "green");
+                .attr("fill", d => colorMap[d.name] || "green");
 
         // Tooltips on mouseover
         const tooltip = d3.select(ref.current)
@@ -207,7 +215,7 @@ function TimingGraph({ ships }) {
 
         d3.selectAll("#shipRect")
             .on("mouseover", event => mouseover(event, data))
-            .on("mousemove", (event) => {
+            .on("mousemove", event => {
                 // Constrain tooltip to inside graphing area.
                 let tooltipX = event.layerX + 25
                 let tooltipY = event.layerY + 25
@@ -220,6 +228,22 @@ function TimingGraph({ ships }) {
                 return tooltip.style("top", tooltipY + "px").style("left", tooltipX + "px")})
             .on("mouseout", () => tooltip.style("visibility", "hidden"));
     }
+
+    const generateShipColorInputs = ships.map((ele, idx) => {
+        return (
+            <Form.Group as={Row} key={idx}>
+                <Col>
+                    <ColorInputBox
+                        key={idx}
+                        label={ele.name}
+                        color={colorMap[ele.name]}
+                        defaultColor="#008000"
+                        onChange={(color) => setColorMap({...colorMap, [ele.name]: color.hex})}
+                    />
+                </Col>
+            </Form.Group>
+        )
+    })
 
     return (
         <>
@@ -234,6 +258,7 @@ function TimingGraph({ ships }) {
                 <h2><center>Config</center></h2>
             </div>
             <div className="box centered-horizontal" style={{width: "372px"}}>
+                <h4>General</h4>
                 <div className="box-inner">
                     <Form>
                         <Form.Group as={Row}>
@@ -254,6 +279,21 @@ function TimingGraph({ ships }) {
                                 />
                             </Col>
                         </Form.Group>
+                    </Form>
+                </div>
+            </div>
+            <div className="box centered-horizontal" style={{width: "372px", top: "25px"}}>
+                <h4>Colors</h4>
+                <div className="box-inner">
+                    <Form>
+                        {generateShipColorInputs}
+                    </Form>
+                </div>
+            </div>
+            <div className="box centered-horizontal" style={{width: "372px", top: "50px"}}>
+                <h4>Buffs</h4>
+                <div className="box-inner">
+                    <Form>
                         <Form.Group as={Row}>
                             <Col>
                                 <InputGroup className="box-sub-inner">
@@ -288,4 +328,43 @@ function TimingGraph({ ships }) {
     )
 }
 
-export default TimingGraph
+function ColorInputBox({ label, color, defaultColor, onChange }) {
+    const [isVisible, setVisible] = useState(false)
+
+    const generateColorPicker = () => {
+        if (isVisible) {
+            return (
+                <div className="popover-color">
+                    <div 
+                        className="cover-color"
+                        onClick={() => setVisible(false)}
+                    />
+                    <SketchPicker 
+                        color={color || defaultColor}
+                        onChange={onChange}
+                    />
+                </div>
+            )
+        }
+
+        return null
+    }
+
+    return (
+        <InputGroup className="box-sub-inner">
+            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
+                <h5 style={{float: "left"}}>{label}</h5>
+                <div 
+                    className="swatch"
+                    onClick={() => setVisible(true)}
+                >
+                    <div 
+                        className="ship-color" 
+                        style={{background: color || defaultColor}}
+                    />
+                </div>
+            </Form.Label>
+            {generateColorPicker()}
+        </InputGroup>
+    )
+}
