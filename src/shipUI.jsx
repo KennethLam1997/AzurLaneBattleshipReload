@@ -3,9 +3,9 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { InputGroup, OverlayTrigger, Popover } from "react-bootstrap";
+import { OverlayTrigger, Popover } from "react-bootstrap";
 
-import { SingleStatBox, SingleStatInputBox } from "./inputBoxes";
+import { CheckBox, SingleStatBox, SingleStatInputBox } from "./inputBoxes";
 
 const EQUIPMENTLIMIT = 5
 
@@ -289,22 +289,13 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                             />
                         </Col>
                         <Col>
-                            <InputGroup className="box-sub-inner">
-                                <InputGroup.Text className="stat-icon-wrapper">
-                                    <img className="stat-icon" src={new URL('/Health_big.png', import.meta.url).href}></img>
-                                </InputGroup.Text>
-                                <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
-                                    <h5 style={{float: "left"}}>
-                                        Oathed?
-                                    </h5>
-                                    <Form.Check 
-                                        className="stat-input" 
-                                        type="switch" 
-                                        defaultChecked={ship.isOathed} 
-                                        onChange={(e) => handleCallBack({"isOathed": e.target.checked})}>
-                                    </Form.Check>
-                                </Form.Label>                
-                            </InputGroup>
+                            <CheckBox
+                                iconsrc={new URL('/Health_big.png', import.meta.url).href}
+                                label="Oathed?"
+                                type="switch"
+                                value={ship.isOathed}
+                                onChange={(e) => handleCallBack({"isOathed": e.target.checked})}
+                            />
                         </Col>
                     </Form.Group>
                 </Form>

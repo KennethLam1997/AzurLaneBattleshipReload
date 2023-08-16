@@ -1,15 +1,16 @@
 import Form from 'react-bootstrap/Form';
 import { InputGroup } from "react-bootstrap"
+import { HuePicker } from 'react-color'
+
+function displayIcon (iconsrc) {
+    if (iconsrc) return (
+        <InputGroup.Text className="stat-icon-wrapper">
+            <img className="stat-icon" src={iconsrc}></img>
+        </InputGroup.Text>
+    )
+}
 
 export function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }) {
-    const displayIcon = () => {
-        if (iconsrc) return (
-            <InputGroup.Text className="stat-icon-wrapper">
-                <img className="stat-icon" src={iconsrc}></img>
-            </InputGroup.Text>
-        )
-    }
-
     const displayFields = () => {
         if (field2) {
             return (
@@ -26,7 +27,7 @@ export function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }
 
     return (
         <InputGroup className="box-sub-inner">
-            {displayIcon()}
+            {displayIcon(iconsrc)}
             <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
                 <h5 style={{float: "left"}}>{label}</h5>
                 {displayFields()}
@@ -36,22 +37,45 @@ export function SingleStatBox({ iconsrc, label, field, suffix, field2, suffix2 }
 }
 
 export function SingleStatInputBox({ iconsrc, label, type, value, onChange }) {
-    const displayIcon = () => {
-        if (iconsrc) return (
-            <InputGroup.Text className="stat-icon-wrapper">
-                <img className="stat-icon" src={iconsrc}></img>
-            </InputGroup.Text>
-        )
-    }
-
     return (
         <InputGroup className="box-sub-inner">
-            {displayIcon()}
+            {displayIcon(iconsrc)}
             <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
                 <h5 style={{float: "left"}}>{label}</h5>
                 <Form.Control className="stat-input" type={type} defaultValue={value} onChange={onChange}>
                 </Form.Control>
             </Form.Label>                
+        </InputGroup>
+    )
+}
+
+export function CheckBox({ iconsrc, label, type, value, onChange }) {
+    return (
+        <InputGroup className="box-sub-inner">
+            {displayIcon(iconsrc)}
+            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
+                <h5 style={{float: "left"}}>{label}</h5>
+                <Form.Check className="stat-input" aria-label="option 1" type={type} defaultChecked={value} onChange={onChange}>
+                </Form.Check>
+            </Form.Label>   
+        </InputGroup>
+    )
+}
+
+export function ColorInputBox({ iconsrc, label, color, onChange, width }) {
+    return (
+        <InputGroup className="box-sub-inner">
+            {displayIcon(iconsrc)}
+            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
+                <h5 style={{float: "left"}}>{label}</h5>
+                <div className="color-input">
+                    <HuePicker
+                        color={color} 
+                        onChange={onChange}
+                        width={width}
+                    />
+                </div>
+            </Form.Label>
         </InputGroup>
     )
 }

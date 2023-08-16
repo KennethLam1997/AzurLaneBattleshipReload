@@ -1,15 +1,18 @@
-import { useState, createRef, useEffect } from "react"
+import { useState, useRef, createRef, useEffect } from "react"
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { InputGroup } from "react-bootstrap";
 import * as d3 from "d3"
-import { SketchPicker } from 'react-color'
 
-import { SingleStatBox, SingleStatInputBox } from "./inputBoxes";
+import { SingleStatInputBox, ColorInputBox, CheckBox } from "./inputBoxes";
+
+const DEFAULTCOLOR = "#008000" // Default green for graph bars
 
 export default function TimingGraph({ ships }) {
-    const [colorMap, setColorMap] = useState(JSON.parse(localStorage.getItem('colorMap')) || {})
+    const [shipSettings, setShipSettings] = useState({})
+    const shipSettingsRef = useRef()
+    shipSettingsRef.current = shipSettings
 
     const [battleDuration, setBattleDuration] = useState(150) // in seconds
     const [barrageDuration, setBarrageDuration] = useState(5) // in seconds
@@ -25,10 +28,6 @@ export default function TimingGraph({ ships }) {
     const ref = createRef()
 
     useEffect(() => {
-        localStorage.setItem("colorMap", JSON.stringify(colorMap))
-    }, [colorMap])
-
-    useEffect(() => {
         d3.select(ref.current).selectAll("*").remove()
         drawGraph() 
     })
@@ -41,7 +40,7 @@ export default function TimingGraph({ ships }) {
             const name = ships[i].name
             const cooldown = parseFloat(ships[i].cooldown)
 
-            if (name == '' || cooldown == 0) continue
+            if (name == '' || cooldown == 0 || (shipSettings[name] && shipSettings[name].enable === false)) continue
 
             start = cooldown
             end = start + barrageDuration
@@ -150,7 +149,10 @@ export default function TimingGraph({ ships }) {
                     if (d.end > battleDuration) return y(d.start) - y(battleDuration)
                     return y(d.start) - y(d.end) 
                 })
-                .attr("fill", d => colorMap[d.name] || "green");
+                .attr("fill", d => {
+                    if (shipSettings[d.name] && shipSettings[d.name].color)
+                        return shipSettings[d.name].color
+                    else return DEFAULTCOLOR});
 
         // Tooltips on mouseover
         const tooltip = d3.select(ref.current)
@@ -197,7 +199,7 @@ export default function TimingGraph({ ships }) {
                 const propName = ships[i].name
                 const propCooldown = parseFloat(ships[i].cooldown)
 
-                if (propName == '' || propCooldown == 0) continue
+                if (propName == '' || propCooldown == 0 || (shipSettings[propName] && shipSettings[propName].enable === false)) continue
 
                 if (name != propName) {
                     if (barrageOverlap[propName]) {
@@ -229,19 +231,22 @@ export default function TimingGraph({ ships }) {
             .on("mouseout", () => tooltip.style("visibility", "hidden"));
     }
 
-    const generateShipColorInputs = ships.map((ele, idx) => {
+    const updateSettings = (name, state) => {
+        const newSettings = {
+            ...shipSettingsRef.current[name],
+            ...state
+        }
+
+        setShipSettings(Object.assign({}, shipSettingsRef.current, {[name]: newSettings}))
+    }
+
+    const generateShipSettings = ships.map((ele, idx) => {
         return (
-            <Form.Group as={Row} key={idx}>
-                <Col>
-                    <ColorInputBox
-                        key={idx}
-                        label={ele.name}
-                        color={colorMap[ele.name]}
-                        defaultColor="#008000"
-                        onChange={(color) => setColorMap({...colorMap, [ele.name]: color.hex})}
-                    />
-                </Col>
-            </Form.Group>
+            <ShipSettings 
+                    key={idx}
+                    label={ele.name}
+                    handleCallBack={(state) => updateSettings(ele.name, state)}
+                />
         )
     })
 
@@ -282,33 +287,19 @@ export default function TimingGraph({ ships }) {
                     </Form>
                 </div>
             </div>
-            <div className="box centered-horizontal" style={{width: "372px", top: "25px"}}>
-                <h4>Colors</h4>
-                <div className="box-inner">
-                    <Form>
-                        {generateShipColorInputs}
-                    </Form>
-                </div>
-            </div>
+                {generateShipSettings}
             <div className="box centered-horizontal" style={{width: "372px", top: "50px"}}>
                 <h4>Buffs</h4>
                 <div className="box-inner">
                     <Form>
                         <Form.Group as={Row}>
                             <Col>
-                                <InputGroup className="box-sub-inner">
-                                    <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
-                                        <h5 style={{float: "left"}}>
-                                            Display Helena?
-                                        </h5>
-                                        <Form.Check 
-                                            className="stat-input" 
-                                            type="switch" 
-                                            defaultChecked={helena} 
-                                            onChange={(e) => setHelena(e.target.checked)}>
-                                        </Form.Check>
-                                    </Form.Label>                
-                                </InputGroup>
+                                <CheckBox
+                                    label="Display Helena?"
+                                    type="switch"
+                                    value={helena}
+                                    onChange={(e) => setHelena(e.target.checked)}
+                                />
                             </Col>
                         </Form.Group>
                         <Form.Group as={Row}>
@@ -320,6 +311,15 @@ export default function TimingGraph({ ships }) {
                                 />
                             </Col>
                         </Form.Group>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <SingleStatInputBox
+                                    label="Helena Duration (s)"
+                                    value={helenaDuration}
+                                    onChange={(e) => setHelenaDuration(parseFloat(e.target.value) || 0)}
+                                />
+                            </Col>
+                        </Form.Group>
                     </Form>
                 </div>
             </div>            
@@ -328,43 +328,64 @@ export default function TimingGraph({ ships }) {
     )
 }
 
-function ColorInputBox({ label, color, defaultColor, onChange }) {
-    const [isVisible, setVisible] = useState(false)
+// Enable, Color, Manual Override, Order?
 
-    const generateColorPicker = () => {
-        if (isVisible) {
+function ShipSettings({ label, handleCallBack }) {
+    const [isVisible, setVisible] = useState(false)
+    const [settings, setSettings] = useState({
+        enable: true,
+        color: DEFAULTCOLOR
+    })
+
+    useEffect(() => {
+        handleCallBack(settings)
+    }, [settings])
+
+    const content = () => {
+        if (isVisible) 
             return (
-                <div className="popover-color">
-                    <div 
-                        className="cover-color"
-                        onClick={() => setVisible(false)}
-                    />
-                    <SketchPicker 
-                        color={color || defaultColor}
-                        onChange={onChange}
-                    />
+                <div className="box-inner">
+                    <Form>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <CheckBox
+                                    label="Enable?"
+                                    type="switch"
+                                    value={settings.enable}
+                                    onChange={(e) => setSettings({...settings, enable: e.target.checked})}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <ColorInputBox
+                                    label="Color"
+                                    color={settings.color}
+                                    onChange={(color) => setSettings({...settings, color: color.hex})}
+                                    width="200px"
+                                />                            
+                            </Col>
+                        </Form.Group>
+                    </Form>
                 </div>
             )
-        }
 
         return null
     }
 
     return (
-        <InputGroup className="box-sub-inner">
-            <Form.Label column style={{width: "150px", padding: "0px", margin:"0px"}}>
-                <h5 style={{float: "left"}}>{label}</h5>
-                <div 
-                    className="swatch"
-                    onClick={() => setVisible(true)}
-                >
-                    <div 
-                        className="ship-color" 
-                        style={{background: color || defaultColor}}
-                    />
-                </div>
-            </Form.Label>
-            {generateColorPicker()}
-        </InputGroup>
-    )
+        <div 
+            className={["box", "centered-horizontal", "ship-settings", isVisible ? "active" : ""].join(" ")} 
+            style={{width: "372px", top: "25px"}}
+        >
+            <div
+                className="ship-settings-label" 
+                style={{color: settings.color}} 
+                onClick={(e) => setVisible(!isVisible)}
+            >
+                {label}
+            </div>
+            {content()}
+        </div>
+    )    
 }
