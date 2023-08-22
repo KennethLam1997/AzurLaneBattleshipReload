@@ -9,7 +9,7 @@ import { CheckBox, SingleStatBox, SingleStatInputBox } from "./inputBoxes";
 
 const EQUIPMENTLIMIT = 5
 
-export function ShipBox({ ship, handleCallBack }) {
+export function ShipBox({ ship, activeShips, handleCallBack }) {
     const generateOptions = () => {
         let allShips = JSON.parse(localStorage.getItem('allship'))
         const rarityMap = {
@@ -27,6 +27,8 @@ export function ShipBox({ ship, handleCallBack }) {
         }
 
         allShips = allShips.sort(sortFn)
+        allShips = allShips.filter(val => !activeShips.includes(val.name))
+
         let options = [<option key="" value="" defaultValue={true} disabled hidden></option>]
 
         allShips.forEach((ele) => {

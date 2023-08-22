@@ -9,7 +9,17 @@ import { SingleStatInputBox, ColorInputBox, CheckBox } from "./inputBoxes";
 const DEFAULTCOLOR = "#008000" // Default green for graph bars
 
 export default function TimingGraph({ ships }) {
-    const [shipSettings, setShipSettings] = useState({})
+    const [shipSettings, setShipSettings] = useState(
+        Object.fromEntries(ships.map((val, idx) => [
+            val._id, 
+            {
+                data: val,
+                enable: true,
+                color: DEFAULTCOLOR,
+                cooldown: ""
+            }
+        ]
+    )))
     const shipSettingsRef = useRef()
     shipSettingsRef.current = shipSettings
 
@@ -35,11 +45,10 @@ export default function TimingGraph({ ships }) {
         let data = []
         let start, end = 0
 
-        for (let i = 0; i < ships.length; i++) {
-            const name = ships[i].name
-            const cooldown = parseFloat(ships[i].cooldown)
+        for (const [name, value] of Object.entries(shipSettings)) {
+            const cooldown = parseFloat(value.cooldown || value.data.cooldown)
 
-            if (name == '' || cooldown == 0 || (shipSettings[name] && shipSettings[name].enable === false)) continue
+            if (!value.enable || isNaN(cooldown) ) continue
 
             start = cooldown
             end = start + barrageDuration
@@ -194,18 +203,17 @@ export default function TimingGraph({ ships }) {
 
             let tooltipHTML = name + "'s #" + index + " barrage<br><br>" + start + "s → " + Math.min(end, battleDuration) + "s<br><br>"
             
-            for (let i = 0; i < ships.length; i++) {
-                const propName = ships[i].name
-                const propCooldown = parseFloat(ships[i].cooldown)
+            for (const [key, value] of Object.entries(shipSettings)) {
+                const propCooldown = parseFloat(value.cooldown || value.data.cooldown)
 
-                if (propName == '' || propCooldown == 0 || (shipSettings[propName] && shipSettings[propName].enable === false)) continue
+                if (!value.enable || isNaN(propCooldown)) continue
 
-                if (name != propName) {
-                    if (barrageOverlap[propName]) {
-                        tooltipHTML += "<div style='color:green'>Overlapping " + propName + " for " + barrageOverlap[propName].overlap + "s!</div>"
+                if (name != key) {
+                    if (barrageOverlap[key]) {
+                        tooltipHTML += "<div style='color:green'>Overlapping " + key + " for " + barrageOverlap[key].overlap + "s!</div>"
                     }
                     else {
-                        tooltipHTML += "<div style='color:red'>NOT Overlapping " + propName + "!</div>"
+                        tooltipHTML += "<div style='color:red'>NOT Overlapping " + key + "!</div>"
                     }
                 }
             }
@@ -239,15 +247,20 @@ export default function TimingGraph({ ships }) {
         setShipSettings(Object.assign({}, shipSettingsRef.current, {[name]: newSettings}))
     }
 
-    const generateShipSettings = ships.map((ele, idx) => {
-        return (
-            <ShipSettings 
-                    key={idx}
-                    label={ele.name}
-                    handleCallBack={(state) => updateSettings(ele.name, state)}
-                />
-        )
-    })
+    const generateShipSettings = () => {
+        let elements = []
+
+        for (const [key, value] of Object.entries(shipSettings)) {
+            elements.push(<ShipSettings 
+                key={key}
+                label={key}
+                settings={value}
+                handleCallBack={(state) => updateSettings(key, state)}
+            />)
+        }
+
+        return elements
+    }
 
     return (
         <>
@@ -286,7 +299,7 @@ export default function TimingGraph({ ships }) {
                     </Form>
                 </div>
             </div>
-                {generateShipSettings}
+                {generateShipSettings()}
             <div className="box centered-horizontal" style={{width: "372px", top: "50px"}}>
                 <h4>Buffs</h4>
                 <div className="box-inner">
@@ -327,18 +340,8 @@ export default function TimingGraph({ ships }) {
     )
 }
 
-// Enable, Color, Manual Override, Order?
-
-function ShipSettings({ label, handleCallBack }) {
+function ShipSettings({ label, settings, handleCallBack }) {
     const [isVisible, setVisible] = useState(false)
-    const [settings, setSettings] = useState({
-        enable: true,
-        color: DEFAULTCOLOR
-    })
-
-    useEffect(() => {
-        handleCallBack(settings)
-    }, [settings])
 
     const content = () => {
         if (isVisible) 
@@ -351,7 +354,7 @@ function ShipSettings({ label, handleCallBack }) {
                                     label="Enable?"
                                     type="switch"
                                     value={settings.enable}
-                                    onChange={(e) => setSettings({...settings, enable: e.target.checked})}
+                                    onChange={(e) => handleCallBack({enable: e.target.checked})}
                                 />
                             </Col>
                         </Form.Group>
@@ -360,8 +363,17 @@ function ShipSettings({ label, handleCallBack }) {
                                 <ColorInputBox
                                     label="Color"
                                     color={settings.color}
-                                    onChange={(color) => setSettings({...settings, color: color.hex})}
+                                    onChange={(color) => handleCallBack({color: color.hex})}
                                     width="200px"
+                                />                            
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row}>
+                            <Col>
+                                <SingleStatInputBox
+                                    label="Cooldown (s)"
+                                    color={settings.cooldown}
+                                    onChange={(e) => handleCallBack({cooldown: e.target.value})}
                                 />                            
                             </Col>
                         </Form.Group>

@@ -97,6 +97,7 @@ export default function App () {
                             </div>
                             <ShipBox 
                                 ship={ele} 
+                                activeShips={ships.map(val => val.name)}
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <GearBox
