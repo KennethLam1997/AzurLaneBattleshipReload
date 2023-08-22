@@ -37,7 +37,7 @@ export function ShipBox({ ship, handleCallBack }) {
     }
 
     const renderTooltip = (
-        <Popover id="popover-basic" style={{maxWidth: "100%"}}>
+        <Popover id="popover-basic" data-testid="popover-basic" style={{maxWidth: "100%"}}>
             <Popover.Header>Add ship?</Popover.Header>
             <Popover.Body >
                 <select 
@@ -74,6 +74,7 @@ export function ShipBox({ ship, handleCallBack }) {
                 <img 
                     key={i}
                     src={new URL("/rarityStarIcon.png", import.meta.url).href} 
+                    alt="Ship rarity star icon"
                     width="30px" 
                     height="30px"
                     style={{
@@ -96,13 +97,17 @@ export function ShipBox({ ship, handleCallBack }) {
         else return ""
     }
 
+    const generateIcon = () => {
+        if (ship.imgsrc) return {backgroundImage: "url(" + new URL(ship.imgsrc, import.meta.url).href + ")"}
+    }
+
     return (
         <div className="centered-horizontal-ship-icon" style={{marginTop: "10px"}}>
             <OverlayTrigger trigger="click" rootClose placement="right" overlay={renderTooltip}>
                 <div className={ship.rarity} style={{position: "relative"}}>
                     <div 
                         className="ship-icon"
-                        style={{backgroundImage: "url(" + new URL(ship.imgsrc, import.meta.url).href + ")"}}
+                        style={generateIcon()}
                     >
                         <div className="ship-rarity-box">
                             {generateRarity()}
@@ -120,6 +125,7 @@ export function ShipBox({ ship, handleCallBack }) {
                         >
                             <img 
                                 src={new URL('/BB.png', import.meta.url).href}
+                                alt="Ship type icon"
                                 height="27px"
                             ></img>
                             <div 
@@ -145,7 +151,7 @@ export function StatsBox({ ship, handleCallBack }) {
     
     useEffect(() => {
         handleCallBack({
-            "level": levelMap[level]
+            level: levelMap[level]
         })
     }, [level])
 
@@ -277,7 +283,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD"
                                 value={ship.bonusReload}
-                                onChange={(e) => handleCallBack({"bonusReload": e.target.value})}
+                                onChange={(e) => handleCallBack({bonusReload: e.target.value})}
                             />
                         </Col>
                         <Col>
@@ -285,7 +291,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/Reload_big.png', import.meta.url).href}
                                 label="RLD (%)"
                                 value={ship.bonusPercentReload}
-                                onChange={(e) => handleCallBack({"bonusPercentReload": e.target.value})}
+                                onChange={(e) => handleCallBack({bonusPercentReload: e.target.value})}
                             />
                         </Col>
                         <Col>
@@ -294,7 +300,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 label="Oathed?"
                                 type="switch"
                                 value={ship.isOathed}
-                                onChange={(e) => handleCallBack({"isOathed": e.target.checked})}
+                                onChange={(e) => handleCallBack({isOathed: e.target.checked})}
                             />
                         </Col>
                     </Form.Group>

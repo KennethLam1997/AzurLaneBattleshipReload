@@ -2,7 +2,6 @@ import { useState, useRef, createRef, useEffect } from "react"
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { InputGroup } from "react-bootstrap";
 import * as d3 from "d3"
 
 import { SingleStatInputBox, ColorInputBox, CheckBox } from "./inputBoxes";
