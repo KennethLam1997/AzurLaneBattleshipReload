@@ -15,15 +15,23 @@ const TEMPLATETAB = {
     level100: {}, 
     level120: {}, 
     level125: {}, 
-    weapon: {
-        imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
-        enhance0: {}, 
-        enhance10: {},
-        enhance: 0
+    equipment: {
+        1: {},
+        2: {},
+        3: {},
+        4: {},
+        5: {},
+        Augment: {}
     }
+    // weapon: {
+    //     imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
+    //     enhance0: {}, 
+    //     enhance10: {},
+    //     enhance: 0
+    // }
 }
 
-export default function App () {
+export default function App ({ database }) {
     const [ships, setShips] = useState(JSON.parse(localStorage.getItem('data')) || [TEMPLATETAB])
     const [currentTab, setCurrentTab] = useState(JSON.parse(localStorage.getItem('currentTab')) || 0)
     const shipRef = useRef()
@@ -43,10 +51,11 @@ export default function App () {
             ...shipRef.current[i],
             ...state
         }
-        const shipLevel = ship["level" + ship.level]
-        const shipWeapon = ship.weapon["enhance" + ship.weapon.enhance]
-        const postOathReload = calculateOathBonus(shipLevel.reload, ship.bonusReload, ship.isOathed)
-        let cooldown = calculateCooldown(shipWeapon.rof, postOathReload, ship.bonusPercentReload)
+        // const shipLevel = ship["level" + ship.level]
+        // const shipWeapon = ship.weapon["enhance" + ship.weapon.enhance]
+        // const postOathReload = calculateOathBonus(shipLevel.reload, ship.bonusReload, ship.isOathed)
+        let cooldown = 0
+        //let cooldown = calculateCooldown(shipWeapon.rof, postOathReload, ship.bonusPercentReload)
         cooldown = cooldown == 0 ? undefined : cooldown
 
         setShips(Object.assign([], shipRef.current, {[i]: {...ship, cooldown: cooldown}}))
@@ -97,11 +106,13 @@ export default function App () {
                             </div>
                             <ShipBox 
                                 ship={ele} 
+                                database={database.ship}
                                 activeShips={ships.map(val => val.name)}
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <GearBox
                                 ship={ele} 
+                                database={database.equipment}
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
                             <CalculationBox
@@ -113,7 +124,7 @@ export default function App () {
                             <div className="tab-container-label">
                                 <h2><center>Stats</center></h2>
                             </div>
-                            <StatsBox 
+                            {/* <StatsBox 
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
@@ -124,7 +135,7 @@ export default function App () {
                             <GearStatsBox
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
-                            />
+                            /> */}
                         </div>
                         <div className="tab-container-close" onClick={() => closeTab(idx)}>
                             <h1><div className="centered-both">×</div></h1>

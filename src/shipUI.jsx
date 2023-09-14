@@ -4,14 +4,16 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { OverlayTrigger, Popover } from "react-bootstrap";
+import Modal from 'react-bootstrap/Modal';
 
 import { CheckBox, SingleStatBox, SingleStatInputBox } from "./inputBoxes";
 
-const EQUIPMENTLIMIT = 5
+const SHIPS = JSON.parse(localStorage.getItem('allship'))
+const EQUIPMENT = JSON.parse(localStorage.getItem('allequipment'))
 
-export function ShipBox({ ship, activeShips, handleCallBack }) {
+export function ShipBox({ ship, database, activeShips, handleCallBack }) {
     const generateOptions = () => {
-        let allShips = JSON.parse(localStorage.getItem('allship'))
+        let database = SHIPS
         const rarityMap = {
             null: 6,
             "common": 5,
@@ -26,12 +28,12 @@ export function ShipBox({ ship, activeShips, handleCallBack }) {
             return compareRarity || compareName
         }
 
-        allShips = allShips.sort(sortFn)
-        allShips = allShips.filter(val => !activeShips.includes(val.name))
+        database = database.sort(sortFn)
+        database = database.filter(val => !activeShips.includes(val.name))
 
         let options = [<option key="" value="" defaultValue={true} disabled hidden></option>]
 
-        allShips.forEach((ele) => {
+        database.forEach((ele) => {
             options.push(<option className={ele.rarity} key={ele.name} value={ele.name}>{ele.name}</option>)
         })
 
@@ -53,9 +55,7 @@ export function ShipBox({ ship, activeShips, handleCallBack }) {
     )
 
     const updateShip = async (name) => {
-        const allShips = JSON.parse(localStorage.getItem('allship'))
-        const newShip = allShips.find(val => val.name == name)
-
+        const newShip = SHIPS.find(val => val.name == name)
         if (!newShip) throw new Error("Failed to load ship information!")
 
         handleCallBack(newShip)
@@ -156,6 +156,10 @@ export function StatsBox({ ship, handleCallBack }) {
             level: levelMap[level]
         })
     }, [level])
+
+    function equipmentStatAccumulator() {
+
+    }
 
     return (
         <div className="box centered-horizontal" style={{top: "10px"}}>
@@ -312,21 +316,39 @@ export function BonusStatsBox({ ship, handleCallBack }) {
     );
 }
 
-export function GearBox({ ship, handleCallBack }) {
+export function GearBox({ ship, database, handleCallBack }) {
+    const equipmentLimit = 5
+
     const generateSelectors = () => {
         let equipmentBoxes = []
 
-        equipmentBoxes.push(
-            <Col key={0}>
-                <EquipmentSelector key={0} ship={ship} handleCallBack={handleCallBack}/>
-            </Col>
-        )
+        // equipmentBoxes.push(
+        //     <Col key={0}>
+        //         <EquipmentSelector key={0} ship={ship} handleCallBack={handleCallBack}/>
+        //     </Col>
+        // )
         
-        // Other features in dev, disable elements.
-        for (let i = 1; i < EQUIPMENTLIMIT; i++) {
+        for (let i = 1; i <= equipmentLimit; i++) {
             equipmentBoxes.push(
                 <Col key={i}>
-                    <EquipmentSelector key={i} disabled={true} handleCallBack={handleCallBack}/>
+                    <EquipmentSelector 
+                        key={i} 
+                        database={database}
+                        disabled={ship.name ? false : true}
+                        equipment={ship.equipment[i] ? ship.equipment[i] : {}} 
+                        slot={i}
+                        handleCallBack={(state) => {
+                            handleCallBack({
+                                equipment: {
+                                    ...ship.equipment,
+                                    [i]: {
+                                        ...ship.equipment[i],
+                                        equipped: {...state}
+                                    }
+                                }
+                            })  
+                        }}
+                    />
                 </Col>
             )
         }
@@ -511,39 +533,64 @@ export function CalculationBox({ ship, handleCallBack }) {
     )
 }
 
-function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
-    // For pesky undefined ship state errors.
-    if (ship == undefined) { 
-        ship = {weapon: {imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href}} 
-    }
+function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled=false }) {
+    const [showModal, setShowModal] = useState(false)
 
     const generateOptions = () => {
-        const allWeapons = JSON.parse(localStorage.getItem('allweapon'))
-        const allWeaponTypes = ["HE", "AP", "Normal", "AP+", "AP^", "AP*", "SAP", "AP4", "APMKD", "Sanshikidan"]
+        function parseShipEquippableFits(fits) {
+            if (fits == "Anti-Air Guns") {
+                return "AA Gun"
+            }
+            else {
+                fits = fits.replace(" Main", "")
+                fits = fits.endsWith("s") ? fits.slice(0, -1) : fits
+                return fits
+            }
+        }
+
+        let shipSlotFits
+
+        if ([1,2,3].includes(slot)) {
+            shipSlotFits = equipment.equippable.map(ele => parseShipEquippableFits(ele))
+        }
+        else if ([4,5].includes(slot)) {
+            shipSlotFits = ["Auxiliary"]
+        }
+        
+        let equipmentList = Object.fromEntries(Object.entries(database).filter(([key]) => shipSlotFits.includes(key)))
         const rarityMap = {
             null: 6,
-            "common": 5,
-            "rare": 4,
-            "elite": 3,
-            "super_rare": 2,
-            "ultra_rare": 1
+            "Common": 5,
+            "Rare": 4,
+            "Elite": 3,
+            "Super Rare": 2,
+            "Ultra Rare": 1
         }
-        const prefixMap = {"Twin": 4, "Triple": 3, "Quadruple": 2}
         const sortFn = (a, b) => {
             let compareRarity = rarityMap[a.rarity] - rarityMap[b.rarity]
-            let comparePrefix = prefixMap[a.name.match(/(Twin|Triple|Quadruple)/)[0]] - prefixMap[b.name.match(/(Twin|Triple|Quadruple)/)[0]]
             let compareName = a.name.localeCompare(b.name)
-            return compareRarity || comparePrefix || compareName
+            return compareRarity || compareName
         }
 
         let options = [<option key="" value="" defaultValue={true} disabled hidden></option>]
 
-        allWeaponTypes.forEach(type => {
+        for (let [key, value] of Object.entries(equipmentList)) {
             let suboptions = []
-            const weaponsOfType = allWeapons.filter(val => val.enhance0.ammoType === type).sort(sortFn)
-            weaponsOfType.forEach(val => suboptions.push(<option className={val.rarity} key={val.name} value={val.name}>{val.name}</option>))
-            options.push(<optgroup key={type} label={"===== " + type + " Guns ====="}>{suboptions}</optgroup>)
-        })
+            value = value.sort(sortFn)
+
+            value.forEach((equipment, index) => {
+                suboptions.push(<option 
+                        className={equipment.rarity.toLowerCase().replace(" ", "_")} 
+                        key={index} 
+                        value={equipment._id}
+                    >
+                        {equipment.name}
+                    </option>
+                )
+            })
+
+            options.push(<optgroup key={key} label={"===== " + key + " ====="}>{suboptions}</optgroup>)
+        }
 
         return options
     }
@@ -563,8 +610,8 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
                 <Popover.Header>Add equipment?</Popover.Header>
                 <Popover.Body>
                     <select 
-                        value={ship.weapon.name || ""}
-                        onChange={(e) => updateWeapon(e.target.value)}
+                        value={equipment.equipped ? equipment.equipped.name : ""}
+                        onChange={(e) => updateEquipment(e.target.value)}
                     >
                         {generateOptions()}
                     </select>
@@ -573,14 +620,21 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
         )
     }
 
+    const generateImage = () => {
+        if (!equipment.equipped) return {}
+        return { backgroundImage: "url(" + equipment.equipped.imgsrc + ")" }
+    }
+
     const generateRarity = () => {
+        if (!equipment.equipped) return
+
         const stars = ({
-            "common": 2,
-            "rare": 3,
-            "elite": 4,
-            "super_rare": 5,
-            "ultra_rare": 6
-        })[ship.weapon.rarity]
+            "Common": 2,
+            "Rare": 3,
+            "Elite": 4,
+            "Super Rare": 5,
+            "Ultra Rare": 6
+        })[equipment.equipped.rarity]
         let starIcons = []
 
         for (let i = 0; i < stars; i++) {
@@ -604,41 +658,72 @@ function EquipmentSelector({ ship, handleCallBack, disabled=false }) {
     }
 
     const generateEnhance = () => {
-        if (ship.weapon.enhance) return "+" + ship.weapon.enhance
+        if (!equipment.equipped) return
+        else if (equipment.equipped.enhance) return "+" + equipment.equipped.enhance
     }
 
-    const updateWeapon = async (name) => {
-        const allWeapons = JSON.parse(localStorage.getItem('allweapon'))
-        const newWeapon = allWeapons.find(val => val.name == name)
+    const updateEquipment = async (id) => {
+        const newEquipped = EQUIPMENT.find(val => val._id == id)
+        if (!newEquipped) throw new Error("Weapon could not be loaded!")
 
-        if (!newWeapon) throw new Error("Weapon could not be loaded!")
-
-        handleCallBack({
-            weapon: {
-                ...ship.weapon,
-                ...newWeapon
-            }
-        })
+        handleCallBack(newEquipped)
     }
+
+    const handleShowModal = () => setShowModal(true)
+    const handleCloseModal = () => setShowModal(false)
 
     return (
-        <>
-            <div className={ship.weapon.rarity + " equipment-box"} >
-                <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
-                    <div 
-                        className="equipment-selection-button"
-                        style={{backgroundImage: "url(" + ship.weapon.imgsrc + ")"}}
-                    >
-                        <div className="equipment-rarity-box">
-                            {generateRarity()}
-                        </div>
-                        <div className="equipment-level-box">
-                            {generateEnhance()}
-                        </div>
-                    </div>
-                </OverlayTrigger>
+        <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
+            <div 
+                className="equipment-selection-button"
+                style={generateImage()}
+                onClick={handleShowModal}
+            >
+                <div className="equipment-rarity-box">
+                    {generateRarity()}
+                </div>
+                <div className="equipment-level-box">
+                    {generateEnhance()}
+                </div>
             </div>
-        </>
+
+            <Modal show={showModal} onHide={handleCloseModal}>
+                <div className="equipment-modal-header">
+                    <center>
+                        <h4 className="equipment-modal-header-text">{equipment.equipped.name}</h4>
+                    </center>
+                </div>
+                <div 
+                    className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-modal-icon-container"].join(" ")}
+                >
+                    <div 
+                        className={["equipment-modal-icon", "centered-both"].join(" ")}
+                        style={generateImage()}>
+                    </div>
+                    <div className="equipment-rarity-box">
+                        {generateRarity()}
+                    </div>
+                </div>
+            </Modal>
+        </div>        
+    )
+
+    return (
+        <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
+            <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
+                <div 
+                    className="equipment-selection-button"
+                    style={generateImage()}
+                >
+                    <div className="equipment-rarity-box">
+                        {generateRarity()}
+                    </div>
+                    <div className="equipment-level-box">
+                        {generateEnhance()}
+                    </div>
+                </div>
+            </OverlayTrigger>
+        </div>
     )
 }
 

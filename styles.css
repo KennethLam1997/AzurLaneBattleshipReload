@@ -431,3 +431,31 @@ g text {
     margin-top: 10px;
     margin-right: 5px;
 }
+
+.equipment-modal-header {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+}
+
+.equipment-modal-header-text {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.equipment-modal-icon-container {
+    min-width: fit-content !important;
+    min-height: 150px !important;    
+}
+
+.equipment-modal-icon {
+    background-size: cover;
+    position: relative;
+    top: 115px;
+    width: 120px;
+    height: 120px;
+    padding: 0px;       
+}

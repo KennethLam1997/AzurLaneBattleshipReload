@@ -5,57 +5,67 @@ import App from "./App";
 import { Spinner, Toast, ToastContainer } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 
-const DATATYPES = ["ship", "weapon"]
+const DATASOURCES = ["ship", "equipment"]
 
-async function fetchUpdate(type) {
-    const response = await fetch(HOST + "/" + type + "/all")
+async function fetchUpdate(dataSource) {
+    const response = await fetch(HOST + "/" + dataSource + "/all")
     const json = await response.json()
 
-    if (!json) throw new Error(type + " could not be loaded!")
+    if (!json) throw new Error(dataSource + " could not be loaded!")
 
-    localStorage.setItem("all" + type, JSON.stringify(json))
-    localStorage.setItem(type + "DateAccessed", JSON.stringify(Date.now()))         
+    localStorage.setItem("all" + dataSource, JSON.stringify(json))
+    localStorage.setItem(dataSource + "DateAccessed", JSON.stringify(Date.now()))         
+}
+
+function groupByType(dataSource) {
+    let data = JSON.parse(localStorage.getItem('all' + dataSource))
+    data = data.reduce((acc, val) => {
+            acc[val.type] = acc[val.type] || []
+            acc[val.type].push(val)
+            return acc
+        }, Object.create(null))
+    
+    return data
 }
 
 function Loader () {
     const [isLoading, setIsLoading] = useState(true)
     const [isFullUpdate, setIsFullUpdate] = useState(true)
     const [isRefreshRequired, setIsRefreshRequired] = useState(false)
+    const [database, setDatabase] = useState({})
 
     useEffect(() => {
         async function fetchDateModified() {
             try {
-                if (DATATYPES.some(val => !localStorage.getItem("all" + val) || !localStorage.getItem(val + 'DateAccessed'))) {
-                    for (const type of DATATYPES) {
-                        await fetchUpdate(type)
-                        console.log("Updated to latest " + type + " info!")
+                if (DATASOURCES.some(val => !localStorage.getItem("all" + val) || !localStorage.getItem(val + 'DateAccessed'))) {
+                    for (const source of DATASOURCES) {
+                        await fetchUpdate(source)
+                        console.log("Updated to latest " + source + " info!")
                     }
-
-                    setIsLoading(false)
                 }
                 else {
                     setIsFullUpdate(false)
 
-                    for (const type of DATATYPES) {
-                        const response = await fetch(HOST + "/dateModified/" + type)
+                    for (const source of DATASOURCES) {
+                        const response = await fetch(HOST + "/dateModified/" + source)
                         const json = await response.json()
                 
-                        if (!json) throw new Error(type + " could not be loaded!")
+                        if (!json) throw new Error(source + " could not be loaded!")
                         
-                        const dateAccessed = JSON.parse(localStorage.getItem(type + 'DateAccessed'))
+                        const dateAccessed = JSON.parse(localStorage.getItem(source + 'DateAccessed'))
 
                         if (json.dateModified > dateAccessed) {
-                            fetchUpdate(type)
-                            console.log("Updated to latest " + type + " info!")
+                            fetchUpdate(source)
+                            console.log("Updated to latest " + source + " info!")
                             setIsRefreshRequired(true)
                         }
                         else {
-                            console.log(type + " info is current!")
+                            console.log(source + " info is current!")
                         }
                     }
-
-                    setIsLoading(false)
                 }
+
+                setIsLoading(false)
             }
             catch (error) {
                 setIsFullUpdate(false)
@@ -66,6 +76,10 @@ function Loader () {
         }
 
         fetchDateModified()
+        setDatabase(DATASOURCES.reduce((acc, val) => {
+            acc[val] = groupByType(val)
+            return acc
+        }, {}))
     }, [])
 
     if (isFullUpdate && isLoading) {
@@ -111,15 +125,13 @@ function Loader () {
     const showLoadingToast = () => {
         if (isLoading || isRefreshRequired) {
             return (
-                <div className='bg-dark'>
-                    <ToastContainer
-                        className="p-3"
-                        position="bottom-start"
-                        style={{ zIndex: 1 }}
-                    >
-                        {toast()}
-                    </ToastContainer>
-                </div> 
+                <ToastContainer
+                    className="p-3"
+                    position="bottom-start"
+                    style={{ zIndex: 1 }}
+                >
+                    {toast()}
+                </ToastContainer>
             )
         }
     }
@@ -127,7 +139,7 @@ function Loader () {
     return (
         <>
             {showLoadingToast()}
-            <App/>
+            <App database={database}/>
         </>
     )
 }
