@@ -448,7 +448,7 @@ g text {
 
 .equipment-modal-icon-container {
     min-width: fit-content !important;
-    min-height: 150px !important;    
+    min-height: 160px !important;    
 }
 
 .equipment-modal-icon {
@@ -458,4 +458,20 @@ g text {
     width: 120px;
     height: 120px;
     padding: 0px;       
+}
+
+.equipment-modal-rarity-box {
+    padding: 0px;
+    position: relative;
+    top: 120px;
+    left: 180px;
+    display: flex;
+    align-items: flex-start;    
+    width: fit-content;
+}
+
+.equipment-stars {
+    position: absolute;
+    left: 50%;
+    top: 85%;
 }

@@ -625,7 +625,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         return { backgroundImage: "url(" + equipment.equipped.imgsrc + ")" }
     }
 
-    const generateRarity = () => {
+    const generateRarity = (width, height, leftOffsetSpacing) => {
         if (!equipment.equipped) return
 
         const stars = ({
@@ -635,22 +635,53 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
             "Super Rare": 5,
             "Ultra Rare": 6
         })[equipment.equipped.rarity]
-        let starIcons = []
 
-        for (let i = 0; i < stars; i++) {
+        let starIcons = []
+        let centerStarOffset = 0
+
+        if (stars % 2 != 0) { 
             starIcons.push(
+                <img 
+                    key={0}
+                    src={new URL("/rarityStarIcon.png", import.meta.url).href} 
+                    width={width}
+                    height={height}
+                    style={{
+                        position: "absolute",
+                        left: -Math.floor(width / 2) + "px",
+                        zIndex: 10
+                    }}
+                />              
+            )
+        }
+        else {
+            centerStarOffset = leftOffsetSpacing / 2
+        }
+
+        for (let i = 1; i < Math.floor(stars / 2) + 1; i++) {
+            starIcons.push(                
+                <img 
+                    key={-i}
+                    src={new URL("/rarityStarIcon.png", import.meta.url).href} 
+                    width={width + "px"}
+                    height={height + "px"}
+                    style={{
+                        position: "absolute",
+                        left: -i * leftOffsetSpacing + centerStarOffset - Math.floor(width / 2) + "px",
+                        zIndex: 10 - i
+                    }}
+                />,
                 <img 
                     key={i}
                     src={new URL("/rarityStarIcon.png", import.meta.url).href} 
-                    width="15px" 
-                    height="15px"
+                    width={width + "px"}
+                    height={height + "px"}
                     style={{
                         position: "absolute",
-                        left: i * 10 + "px",
-                        zIndex: i
+                        left: i * leftOffsetSpacing - centerStarOffset - Math.floor(width / 2) + "px",
+                        zIndex: 10 + i
                     }}
-                >
-                </img>
+                />
             )
         }
 
@@ -679,8 +710,8 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                 style={generateImage()}
                 onClick={handleShowModal}
             >
-                <div className="equipment-rarity-box">
-                    {generateRarity()}
+                <div className={"equipment-stars"}>
+                    {generateRarity(15, 15, 10)}
                 </div>
                 <div className="equipment-level-box">
                     {generateEnhance()}
@@ -700,8 +731,8 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                         className={["equipment-modal-icon", "centered-both"].join(" ")}
                         style={generateImage()}>
                     </div>
-                    <div className="equipment-rarity-box">
-                        {generateRarity()}
+                    <div className={"equipment-stars"}>
+                        {generateRarity(30, 30, 20)}
                     </div>
                 </div>
             </Modal>
