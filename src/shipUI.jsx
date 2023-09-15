@@ -693,24 +693,119 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         else if (equipment.equipped.enhance) return "+" + equipment.equipped.enhance
     }
 
+    const generateModalStats = () => {
+        if (!equipment.equipped) return
+
+        const self = equipment.equipped.enhance0
+
+        const statStructure = new Map([
+            ["DMG", self.damage],
+            ["FR",  self.rof],
+            ["FP",  self.firepower],
+            ["TRP", self.torpedo],
+            ["AVI", self.aviation],
+            ["AA",  self.antiair],
+            ["RLD", self.reload]
+        ])
+
+        if (equipment.equipped.type.includes("Gun")) {
+            const subsection = [
+                ["AmmoType",     self.ammoType],
+                ["Light Mod.",   self.light],
+                ["Med Mod.",     self.medium],
+                ["Heavy Mod.",   self.heavy],
+                ["Spread Range", self.spread],
+                ["Volley",       self.volley],
+                ["Volley Time",  self.volleyTime]
+            ]
+
+            for (const ele of subsection) {
+                statStructure.set(ele[0], ele[1])
+            }
+        }
+        else if (["Dive Bomber", "Fighter", "Seaplane", "Torpedo Bomber"].includes(equipment.equipped.type)) {
+            const subsection = [
+                ["Armaments", ""],
+                ["Guns",        self.antiairGuns],
+                ["Torpedoes",   self.torpedoes],
+                ["Bombs",       self.bombs],
+                ["Plane Speed", self.speed],
+                ["Plane Health", self.planeHealth],
+                ["Max Plane Eva.", self.dodgeLimit],
+                ["Crash Damage", self.crashDamage]
+            ]
+
+            for (const ele of subsection) {
+                console.log(ele)
+                statStructure.set(ele[0], ele[1])
+            }
+        }
+
+        statStructure.set("Gear Properties", "")
+        statStructure.set("Range", self.range)
+        statStructure.set("Faction", equipment.equipped.nation)
+        statStructure.set("Notes", equipment.equipped.notes)
+
+        let boxes = []
+
+        for (let [key, value] of statStructure) {
+            if (value == undefined) continue
+
+            let leftMarginOffset = 10
+
+            if (key == "FR") value += "s/wave"
+            else if ([
+                    "Light Mod.", 
+                    "Med Mod.", 
+                    "Heavy Mod.", 
+                    "Spread Range", 
+                    "Volley", 
+                    "Volley Time", 
+                    "Range", 
+                    "Faction",
+                    "Guns",
+                    "Torpedoes",
+                    "Bombs",
+                    "Plane Speed",
+                    "Plane Health",
+                    "Max Plane Eva.",
+                    "Crash Damage"
+                ].includes(key)) {
+                leftMarginOffset = 30
+            }
+
+            boxes.push(
+                <div className="equipment-modal-statbox" style={{marginLeft: leftMarginOffset + "px"}}>
+                    <div style={{float: "left", paddingLeft: "10px"}}>
+                        <h5>{key}</h5>
+                    </div>
+                    <div style={{float: "right", paddingRight: "10px"}}>
+                        <h5 className="h5-yellow">{value}</h5>
+                    </div>
+                </div>                
+            )
+        }
+
+        return boxes
+    }
+
     const updateEquipment = async (id) => {
         const newEquipped = EQUIPMENT.find(val => val._id == id)
         if (!newEquipped) throw new Error("Weapon could not be loaded!")
 
         handleCallBack(newEquipped)
     }
-
-    const handleShowModal = () => setShowModal(true)
-    const handleCloseModal = () => setShowModal(false)
+    
+    // Damage, RoF, Stats, Ammo Props, Gear Props, Fits...
 
     return (
         <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
             <div 
                 className="equipment-selection-button"
                 style={generateImage()}
-                onClick={handleShowModal}
+                onClick={() => setShowModal(true)}
             >
-                <div className={"equipment-stars"}>
+                <div className={"equipment-stars"} style={{top: "80%"}}>
                     {generateRarity(15, 15, 10)}
                 </div>
                 <div className="equipment-level-box">
@@ -718,10 +813,10 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                 </div>
             </div>
 
-            <Modal show={showModal} onHide={handleCloseModal}>
-                <div className="equipment-modal-header">
+            <Modal show={showModal} onHide={() => setShowModal(false)} style={{width: "fit-content", left: "50%", transform: "translateX(-50%)"}}>
+                <div className="equipment-modal-content">
                     <center>
-                        <h4 className="equipment-modal-header-text">{equipment.equipped.name}</h4>
+                        <h4 className="equipment-modal-header-text">{equipment.equipped ? equipment.equipped.name : ""}</h4>
                     </center>
                 </div>
                 <div 
@@ -730,10 +825,14 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                     <div 
                         className={["equipment-modal-icon", "centered-both"].join(" ")}
                         style={generateImage()}>
+
+                        <div className={"equipment-stars"} style={{top: "90%"}}>
+                            {generateRarity(30, 30, 15)}
+                        </div>
                     </div>
-                    <div className={"equipment-stars"}>
-                        {generateRarity(30, 30, 20)}
-                    </div>
+                </div>
+                <div className="equipment-modal-content" style={{display: "flex", flexDirection: "column"}}>
+                    {generateModalStats()}
                 </div>
             </Modal>
         </div>        

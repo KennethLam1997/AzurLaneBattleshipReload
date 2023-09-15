@@ -432,10 +432,13 @@ g text {
     margin-right: 5px;
 }
 
-.equipment-modal-header {
+.equipment-modal-content {
     background-color: rgba(0, 0, 0, 0.75) !important;
+    width: 400px;
     border-radius: 0 !important;
     border-width: 0 !important;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .equipment-modal-header-text {
@@ -447,7 +450,7 @@ g text {
 }
 
 .equipment-modal-icon-container {
-    min-width: fit-content !important;
+    min-width: 400px !important;
     min-height: 160px !important;    
 }
 
@@ -473,5 +476,14 @@ g text {
 .equipment-stars {
     position: absolute;
     left: 50%;
-    top: 85%;
+}
+
+.equipment-modal-statbox {
+    margin: 5px 5px 0px 15px;
+    background-color:  rgba(0, 0, 0, 0.5);
+    user-select: none;
+}
+
+.h5-yellow {
+    color: gold !important;
 }
