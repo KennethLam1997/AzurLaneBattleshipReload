@@ -124,11 +124,11 @@ export default function App ({ database }) {
                             <div className="tab-container-label">
                                 <h2><center>Stats</center></h2>
                             </div>
-                            {/* <StatsBox 
+                            <StatsBox 
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
-                            <BonusStatsBox 
+                            {/*<BonusStatsBox 
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />

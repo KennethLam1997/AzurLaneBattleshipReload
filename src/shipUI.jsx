@@ -157,8 +157,81 @@ export function StatsBox({ ship, handleCallBack }) {
         })
     }, [level])
 
-    function equipmentStatAccumulator() {
+    function equipmentStatAccumulator(stat) {
+        let statSum = 0
 
+        for (const [slot, equipment] of Object.entries(ship.equipment)) {
+            if (!equipment.equipped) continue
+            else if (isNaN(equipment.equipped["enhance" + equipment.enhance][stat])) continue
+
+            statSum += parseFloat(equipment.equipped["enhance" + equipment.enhance][stat])
+        }
+
+        return statSum
+    }
+
+    const generateFields = () => {
+        const statFields = [
+            ["HP",  "health"],
+            ["",    "armor"],
+            ["RLD", "reload"],
+            ["FP",  "firepower"],
+            ["TRP", "torpedo"],
+            ["EVA", "evasion"],
+            ["AA",  "antiair"],
+            ["AVI", "aviation"],
+            ["Cost", "consumption"]
+        ]
+        let fields = []
+        const sectionSize = 3
+        let idx = 0
+
+        while (idx < statFields.length) {
+            fields.push(
+                <Form.Group as={Row}>
+                    {statFields.slice(idx, idx + sectionSize).map((ele) => 
+                        <Col>
+                            <SingleStatBox
+                                iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
+                                label={ele[0]}
+                                field={ship["level" + ship.level][ele[1]]}
+                                field2={equipmentStatAccumulator(ele[1])}
+                            />                        
+                        </Col>
+                    )}
+                </Form.Group>
+            )
+
+            idx += sectionSize
+        }
+
+        fields.push(
+            <>
+            <Form.Group as={Row}>
+                <Col xs="auto">
+                    <SingleStatBox
+                        iconsrc={new URL('/asw.png', import.meta.url).href}
+                        label="ASW"
+                        field={ship["level" + ship.level]["asw"]}
+                        field2={equipmentStatAccumulator("asw")}
+                    />                        
+                </Col>
+            </Form.Group>
+            <hr></hr>
+            <Form.Group as={Row}>
+                <Col xs="auto">
+                    <SingleStatBox
+                        iconsrc={new URL('/luck.png', import.meta.url).href}
+                        label="LCK"
+                        field={ship["level" + ship.level]["luck"]}
+                        field2={equipmentStatAccumulator("luck")}
+                    />                        
+                </Col>
+            </Form.Group>
+            </>
+        )
+
+        return fields
     }
 
     return (
@@ -180,97 +253,7 @@ export function StatsBox({ ship, handleCallBack }) {
                             />
                         </Col>
                     </Form.Group>
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Health_big.png', import.meta.url).href}
-                                label="HP"
-                                field={ship["level" + ship.level].health}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/armor_big.png', import.meta.url).href}
-                                label={ship["level" + ship.level].armor}
-                                field=""
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Reload_big.png', import.meta.url).href}
-                                label="RLD"
-                                field={ship["level" + ship.level].reload}
-                                field2={ship.bonusReload}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Firepower_big.png', import.meta.url).href}
-                                label="FP"
-                                field={ship["level" + ship.level].firepower}
-                                field2={ship.weapon["enhance" + ship.weapon.enhance].firepower}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Torpedo_big.png', import.meta.url).href}
-                                label="TRP"
-                                field={ship["level" + ship.level].torpedo}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Evasion_big.png', import.meta.url).href}
-                                label="EVA"
-                                field={ship["level" + ship.level].evasion}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/AntiAir_big.png', import.meta.url).href}
-                                label="AA"
-                                field={ship["level" + ship.level].antiair}
-                                field2={ship.weapon["enhance" + ship.weapon.enhance].antiair}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Aviation_big.png', import.meta.url).href}
-                                label="AVI"
-                                field={ship["level" + ship.level].aviation}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Consumption_big.png', import.meta.url).href}
-                                label="Cost"
-                                field={ship["level" + ship.level].consumption}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row}>
-                        <Col xs="auto">
-                            <SingleStatBox 
-                                iconsrc={new URL('/ASW_big.png', import.meta.url).href}
-                                label="ASW"
-                                field={ship["level" + ship.level].asw}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <hr></hr>
-                    <Form.Group as={Row}>
-                        <Col xs="auto">
-                            <SingleStatBox 
-                                iconsrc={new URL('/Luck_big.png', import.meta.url).href}
-                                label="LCK"
-                                field={ship["level" + ship.level].luck}
-                            />
-                        </Col>
-                    </Form.Group>
+                    {generateFields()}
                 </Form>
             </div>
         </div>
@@ -343,7 +326,8 @@ export function GearBox({ ship, database, handleCallBack }) {
                                     ...ship.equipment,
                                     [i]: {
                                         ...ship.equipment[i],
-                                        equipped: {...state}
+                                        equipped: {...state},
+                                        enhance: 0
                                     }
                                 }
                             })  
@@ -701,11 +685,17 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         const statStructure = new Map([
             ["DMG", self.damage],
             ["FR",  self.rof],
+            ["HP",  self.health],
             ["FP",  self.firepower],
+            ["AA",  self.antiair],
             ["TRP", self.torpedo],
             ["AVI", self.aviation],
-            ["AA",  self.antiair],
-            ["RLD", self.reload]
+            ["RLD", self.reload],
+            ["EVA", self.evasion],
+            ["ASW", self.asw],
+            ["OXY", self.oxygen],
+            ["LCK", self.luck],
+            ["ACC", self.accuracy]
         ])
 
         if (equipment.equipped.type.includes("Gun")) {
@@ -736,15 +726,21 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
             ]
 
             for (const ele of subsection) {
-                console.log(ele)
                 statStructure.set(ele[0], ele[1])
             }
+        }
+        else {
+            statStructure.set("SPD", self.speed)
         }
 
         statStructure.set("Gear Properties", "")
         statStructure.set("Range", self.range)
         statStructure.set("Faction", equipment.equipped.nation)
-        statStructure.set("Notes", equipment.equipped.notes)
+
+        if (equipment.equipped.notes) {
+            statStructure.set("Notes", "")
+            statStructure.set("", <div style={{marginLeft: "10px"}}>{equipment.equipped.notes}</div>)
+        }
 
         let boxes = []
 
@@ -769,7 +765,8 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                     "Plane Speed",
                     "Plane Health",
                     "Max Plane Eva.",
-                    "Crash Damage"
+                    "Crash Damage",
+                    ""
                 ].includes(key)) {
                 leftMarginOffset = 30
             }
@@ -826,7 +823,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                         className={["equipment-modal-icon", "centered-both"].join(" ")}
                         style={generateImage()}>
 
-                        <div className={"equipment-stars"} style={{top: "90%"}}>
+                        <div className={"equipment-stars"} style={{top: "100%"}}>
                             {generateRarity(30, 30, 15)}
                         </div>
                     </div>
@@ -838,22 +835,22 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         </div>        
     )
 
-    return (
-        <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
-            <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
-                <div 
-                    className="equipment-selection-button"
-                    style={generateImage()}
-                >
-                    <div className="equipment-rarity-box">
-                        {generateRarity()}
-                    </div>
-                    <div className="equipment-level-box">
-                        {generateEnhance()}
-                    </div>
-                </div>
-            </OverlayTrigger>
-        </div>
-    )
+    // return (
+    //     <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
+    //         <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
+    //             <div 
+    //                 className="equipment-selection-button"
+    //                 style={generateImage()}
+    //             >
+    //                 <div className="equipment-rarity-box">
+    //                     {generateRarity()}
+    //                 </div>
+    //                 <div className="equipment-level-box">
+    //                     {generateEnhance()}
+    //                 </div>
+    //             </div>
+    //         </OverlayTrigger>
+    //     </div>
+    // )
 }
 
