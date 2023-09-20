@@ -110,11 +110,6 @@ export default function App ({ database }) {
                                 activeShips={ships.map(val => val.name)}
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
-                            <GearBox
-                                ship={ele} 
-                                database={database.equipment}
-                                handleCallBack={(state) => addShipStats(idx, state)}
-                            />
                             <CalculationBox
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
@@ -124,6 +119,11 @@ export default function App ({ database }) {
                             <div className="tab-container-label">
                                 <h2><center>Stats</center></h2>
                             </div>
+                            <GearBox
+                                ship={ele} 
+                                database={database.equipment}
+                                handleCallBack={(state) => addShipStats(idx, state)}
+                            />
                             <StatsBox 
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}

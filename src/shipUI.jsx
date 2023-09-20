@@ -300,7 +300,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
 }
 
 export function GearBox({ ship, database, handleCallBack }) {
-    const equipmentLimit = 5
+    const equipmentLimit = 6
 
     const generateSelectors = () => {
         let equipmentBoxes = []
@@ -341,7 +341,7 @@ export function GearBox({ ship, database, handleCallBack }) {
     }
 
     return (
-        <div className="box centered-horizontal" style={{top: "283px"}}>
+        <div className="box centered-horizontal" style={{marginTop: "10px", marginBottom: "10px"}}>
             <h4>Gear</h4>
             <div className="box-inner">
                 <Form>
@@ -540,6 +540,9 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         else if ([4,5].includes(slot)) {
             shipSlotFits = ["Auxiliary"]
         }
+        else if (slot == 6) {
+            shipSlotFits = ["Augment Module"]
+        }
         
         let equipmentList = Object.fromEntries(Object.entries(database).filter(([key]) => shipSlotFits.includes(key)))
         const rarityMap = {
@@ -605,7 +608,11 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
     }
 
     const generateImage = () => {
-        if (!equipment.equipped) return {}
+        if (!equipment.equipped) {
+            if (slot != 6) return { backgroundImage: "url(" + new URL('/equipmentAddIcon.png', import.meta.url).href + ")" }
+            else return { backgroundImage: "url(" + new URL('/augmentAddIcon.png', import.meta.url).href + ")" }
+        }
+
         return { backgroundImage: "url(" + equipment.equipped.imgsrc + ")" }
     }
 
