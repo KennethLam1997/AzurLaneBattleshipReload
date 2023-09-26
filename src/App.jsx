@@ -54,11 +54,56 @@ export default function App ({ database }) {
         // const shipLevel = ship["level" + ship.level]
         // const shipWeapon = ship.weapon["enhance" + ship.weapon.enhance]
         // const postOathReload = calculateOathBonus(shipLevel.reload, ship.bonusReload, ship.isOathed)
-        let cooldown = 0
         //let cooldown = calculateCooldown(shipWeapon.rof, postOathReload, ship.bonusPercentReload)
-        cooldown = cooldown == 0 ? undefined : cooldown
 
-        setShips(Object.assign([], shipRef.current, {[i]: {...ship, cooldown: cooldown}}))
+        function equipmentStatAccumulator(ship, stat) {
+            let statSum = 0
+        
+            for (const [, equipment] of Object.entries(ship.equipment)) {
+                if (!equipment.equipped) continue
+        
+                let equipmentStat = equipment.equipped["enhance" + equipment.enhance][stat]
+                if (!equipmentStat) continue
+        
+                if (typeof(equipmentStat) == "number") {
+                    if (!isNaN(equipmentStat)) statSum += parseFloat(equipmentStat)
+                }
+                else {
+                    equipmentStat = equipmentStat.split("+").filter(ele => !isNaN(ele)).map(ele => parseFloat(ele))
+                    if (equipmentStat.length != 0) statSum += equipmentStat.reduce((a, b) => a + b, 0)
+                }
+            }
+        
+            return statSum
+        }
+
+        // for (const [, equipment] of Object.entries(shipRef.current[i].equipment)) {
+        //     if (!equipment.equipped) continue
+
+        //     let cooldown = calculateCooldown(equipment.equipped["enhance" + equipment.enhance]["rof"], equipmentStatAccumulator(shipRef.current[i], "reload"), 0)
+        //     setShips(Object.assign([], shipRef.current[i].equipment, {[cooldown]: cooldown}))
+        // }
+
+        const statFields = [
+            "health",
+            "reload",
+            "firepower",
+            "torpedo",
+            "evasion",
+            "antiair",
+            "aviation",
+            "consumption",
+            "asw",
+            "luck"
+        ]
+
+        let bonusStats = {}
+
+        for (const stat of statFields) {
+            bonusStats[stat] = equipmentStatAccumulator(ship, stat)
+        }
+
+        setShips(Object.assign([], shipRef.current, {[i]: {...ship, bonusStats: bonusStats}}))
     }
 
     function handleOnSelect(key) {

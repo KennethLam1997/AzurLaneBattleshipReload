@@ -158,30 +158,6 @@ export function StatsBox({ ship, handleCallBack }) {
         })
     }, [level])
 
-    function equipmentStatAccumulator(stat) {
-        let statSum = 0
-
-        for (const [, equipment] of Object.entries(ship.equipment)) {
-            if (!equipment.equipped) continue
-            //else if (isNaN(equipment.equipped["enhance" + equipment.enhance][stat])) continue
-
-            let equipmentStat = equipment.equipped["enhance" + equipment.enhance][stat]
-            if (!equipmentStat) continue
-
-            if (typeof(equipmentStat) == "number") {
-                if (!isNaN(equipmentStat)) statSum += parseFloat(equipmentStat)
-            }
-            else {
-                equipmentStat = equipmentStat.split("+").filter(ele => !isNaN(ele)).map(ele => parseFloat(ele))
-                if (equipmentStat.length != 0) statSum += sum(equipmentStat)
-            }
-
-            //statSum += parseFloat(equipment.equipped["enhance" + equipment.enhance][stat])
-        }
-
-        return statSum
-    }
-
     const generateFields = () => {
         const statFields = [
             ["HP",  "health"],
@@ -207,7 +183,7 @@ export function StatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
                                 label={ele[0]}
                                 field={ship["level" + ship.level][ele[1]]}
-                                field2={equipmentStatAccumulator(ele[1])}
+                                field2={ship.bonusStats[ele[1]]}
                             />                        
                         </Col>
                     )}
@@ -225,7 +201,7 @@ export function StatsBox({ ship, handleCallBack }) {
                         iconsrc={new URL('/asw.png', import.meta.url).href}
                         label="ASW"
                         field={ship["level" + ship.level]["asw"]}
-                        field2={equipmentStatAccumulator("asw")}
+                        field2={ship.bonusStats["asw"]}
                     />                        
                 </Col>
             </Form.Group>
@@ -236,7 +212,7 @@ export function StatsBox({ ship, handleCallBack }) {
                         iconsrc={new URL('/luck.png', import.meta.url).href}
                         label="LCK"
                         field={ship["level" + ship.level]["luck"]}
-                        field2={equipmentStatAccumulator("luck")}
+                        field2={ship.bonusStats["luck"]}
                     />                        
                 </Col>
             </Form.Group>
@@ -316,14 +292,8 @@ export function GearBox({ ship, database, handleCallBack }) {
 
     const generateSelectors = () => {
         let equipmentBoxes = []
-
-        // equipmentBoxes.push(
-        //     <Col key={0}>
-        //         <EquipmentSelector key={0} ship={ship} handleCallBack={handleCallBack}/>
-        //     </Col>
-        // )
         
-        for (let i = 1; i <= equipmentLimit; i++) {
+        for (const i of [1, 2, 3, 4, 5, "Augment"]) {
             equipmentBoxes.push(
                 <Col key={i}>
                     <EquipmentSelector 
@@ -336,7 +306,9 @@ export function GearBox({ ship, database, handleCallBack }) {
                             handleCallBack({
                                 equipment: {
                                     ...ship.equipment,
-                                    [i]: {...state}
+                                    [i]: {
+                                        ...state
+                                    }
                                 }
                             })  
                         }}
@@ -345,25 +317,25 @@ export function GearBox({ ship, database, handleCallBack }) {
             )
         }
 
-        equipmentBoxes.push(
-            <Col key={"Augment"}>
-                <EquipmentSelector 
-                    key={"Augment"} 
-                    database={database}
-                    disabled={ship.name ? false : true}
-                    equipment={ship.equipment["Augment"] ? ship.equipment["Augment"] : {}} 
-                    slot={"Augment"}
-                    handleCallBack={(state) => {
-                        handleCallBack({
-                            equipment: {
-                                ...ship.equipment,
-                                Augment: {...state}
-                            }
-                        })  
-                    }}
-                />
-            </Col>
-        )
+        // equipmentBoxes.push(
+        //     <Col key={"Augment"}>
+        //         <EquipmentSelector 
+        //             key={"Augment"} 
+        //             database={database}
+        //             disabled={ship.name ? false : true}
+        //             equipment={ship.equipment["Augment"] ? ship.equipment["Augment"] : {}} 
+        //             slot={"Augment"}
+        //             handleCallBack={(state) => {
+        //                 handleCallBack({
+        //                     equipment: {
+        //                         ...ship.equipment,
+        //                         Augment: {...state}
+        //                     }
+        //                 })  
+        //             }}
+        //         />
+        //     </Col>
+        // )
 
         return equipmentBoxes
     }
@@ -829,7 +801,9 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
 
         handleCallBack({
             ...equipment,
-            equipped: {...newEquipped}
+            equipped: {
+                ...newEquipped
+            }
         })
     }
 
