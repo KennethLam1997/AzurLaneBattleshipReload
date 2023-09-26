@@ -432,6 +432,10 @@ g text {
     margin-right: 5px;
 }
 
+.equipment-modal {
+    width: fit-content !important;
+}
+
 .equipment-modal-content {
     background-color: rgba(0, 0, 0, 0.75) !important;
     width: 400px;
@@ -439,6 +443,8 @@ g text {
     border-width: 0 !important;
     padding-top: 5px;
     padding-bottom: 5px;
+    max-height: 500px !important;
+    overflow-y: auto !important;
 }
 
 .equipment-modal-header-text {
@@ -486,4 +492,30 @@ g text {
 
 .h5-yellow {
     color: gold !important;
+}
+
+.equipment-modal-button-div {
+    position: absolute;
+    bottom: -125px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 200%;
+}
+
+.equipment-modal-button-div > * {
+    width: 200px;
+    height: 60px;
+    border-radius: 1px;
+    border-color: darkgrey;
+}
+
+.equipment-modal-button-div > :first-child {
+    background-image: linear-gradient(45deg, rgb(100, 100, 100), rgb(180, 180, 180));
+}
+
+.equipment-modal-button-div > :not(:first-child) {
+    background-image: linear-gradient(45deg, rgb(190, 120, 20), rgb(240, 180, 100));
 }

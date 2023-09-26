@@ -7,6 +7,7 @@ import { OverlayTrigger, Popover } from "react-bootstrap";
 import Modal from 'react-bootstrap/Modal';
 
 import { CheckBox, SingleStatBox, SingleStatInputBox } from "./inputBoxes";
+import { sum } from "d3";
 
 const SHIPS = JSON.parse(localStorage.getItem('allship'))
 const EQUIPMENT = JSON.parse(localStorage.getItem('allequipment'))
@@ -160,11 +161,22 @@ export function StatsBox({ ship, handleCallBack }) {
     function equipmentStatAccumulator(stat) {
         let statSum = 0
 
-        for (const [slot, equipment] of Object.entries(ship.equipment)) {
+        for (const [, equipment] of Object.entries(ship.equipment)) {
             if (!equipment.equipped) continue
-            else if (isNaN(equipment.equipped["enhance" + equipment.enhance][stat])) continue
+            //else if (isNaN(equipment.equipped["enhance" + equipment.enhance][stat])) continue
 
-            statSum += parseFloat(equipment.equipped["enhance" + equipment.enhance][stat])
+            let equipmentStat = equipment.equipped["enhance" + equipment.enhance][stat]
+            if (!equipmentStat) continue
+
+            if (typeof(equipmentStat) == "number") {
+                if (!isNaN(equipmentStat)) statSum += parseFloat(equipmentStat)
+            }
+            else {
+                equipmentStat = equipmentStat.split("+").filter(ele => !isNaN(ele)).map(ele => parseFloat(ele))
+                if (equipmentStat.length != 0) statSum += sum(equipmentStat)
+            }
+
+            //statSum += parseFloat(equipment.equipped["enhance" + equipment.enhance][stat])
         }
 
         return statSum
@@ -300,7 +312,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
 }
 
 export function GearBox({ ship, database, handleCallBack }) {
-    const equipmentLimit = 6
+    const equipmentLimit = 5
 
     const generateSelectors = () => {
         let equipmentBoxes = []
@@ -324,11 +336,7 @@ export function GearBox({ ship, database, handleCallBack }) {
                             handleCallBack({
                                 equipment: {
                                     ...ship.equipment,
-                                    [i]: {
-                                        ...ship.equipment[i],
-                                        equipped: {...state},
-                                        enhance: 0
-                                    }
+                                    [i]: {...state}
                                 }
                             })  
                         }}
@@ -336,6 +344,26 @@ export function GearBox({ ship, database, handleCallBack }) {
                 </Col>
             )
         }
+
+        equipmentBoxes.push(
+            <Col key={"Augment"}>
+                <EquipmentSelector 
+                    key={"Augment"} 
+                    database={database}
+                    disabled={ship.name ? false : true}
+                    equipment={ship.equipment["Augment"] ? ship.equipment["Augment"] : {}} 
+                    slot={"Augment"}
+                    handleCallBack={(state) => {
+                        handleCallBack({
+                            equipment: {
+                                ...ship.equipment,
+                                Augment: {...state}
+                            }
+                        })  
+                    }}
+                />
+            </Col>
+        )
 
         return equipmentBoxes
     }
@@ -540,7 +568,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         else if ([4,5].includes(slot)) {
             shipSlotFits = ["Auxiliary"]
         }
-        else if (slot == 6) {
+        else if (slot == "Augment") {
             shipSlotFits = ["Augment Module"]
         }
         
@@ -565,13 +593,15 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
             let suboptions = []
             value = value.sort(sortFn)
 
-            value.forEach((equipment, index) => {
+            value.forEach((equipmentItem, index) => {
+                if (slot == "Augment" && !equipment.equippable.includes(equipmentItem.name)) return
+
                 suboptions.push(<option 
-                        className={equipment.rarity.toLowerCase().replace(" ", "_")} 
+                        className={equipmentItem.rarity.toLowerCase().replace(" ", "_")} 
                         key={index} 
-                        value={equipment._id}
+                        value={equipmentItem._id}
                     >
-                        {equipment.name}
+                        {equipmentItem.name}
                     </option>
                 )
             })
@@ -681,13 +711,13 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
 
     const generateEnhance = () => {
         if (!equipment.equipped) return
-        else if (equipment.equipped.enhance) return "+" + equipment.equipped.enhance
+        else if (equipment.enhance) return "+" + equipment.enhance
     }
 
     const generateModalStats = () => {
         if (!equipment.equipped) return
 
-        const self = equipment.equipped.enhance0
+        const self = equipment.equipped["enhance" + equipment.enhance]
 
         const statStructure = new Map([
             ["DMG", self.damage],
@@ -797,7 +827,17 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         const newEquipped = EQUIPMENT.find(val => val._id == id)
         if (!newEquipped) throw new Error("Weapon could not be loaded!")
 
-        handleCallBack(newEquipped)
+        handleCallBack({
+            ...equipment,
+            equipped: {...newEquipped}
+        })
+    }
+
+    const updateEnhance = () => {
+        handleCallBack({
+            ...equipment,
+            enhance: equipment.enhance == 0 ? 10 : 0
+        })
     }
     
     // Damage, RoF, Stats, Ammo Props, Gear Props, Fits...
@@ -817,7 +857,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                 </div>
             </div>
 
-            <Modal show={showModal} onHide={() => setShowModal(false)} style={{width: "fit-content", left: "50%", transform: "translateX(-50%)"}}>
+            <Modal show={showModal} onHide={() => setShowModal(false)} dialogClassName="equipment-modal">
                 <div className="equipment-modal-content">
                     <center>
                         <h4 className="equipment-modal-header-text">{equipment.equipped ? equipment.equipped.name : ""}</h4>
@@ -835,29 +875,40 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                         </div>
                     </div>
                 </div>
-                <div className="equipment-modal-content" style={{display: "flex", flexDirection: "column"}}>
+                <div className="equipment-modal-content" style={{display: "flex", flexDirection: "column", overflowY: "auto"}}>
                     {generateModalStats()}
+                </div>
+                <div className="equipment-modal-button-div">
+                    <button>
+                        <h3>Unequip</h3>
+                    </button>
+                    <button>
+                        <h3>Change</h3>
+                    </button>
+                    <button onClick={() => updateEnhance()}>
+                        <h3>{equipment.enhance == 0 ? "Enhance +10" : "Unenhance"}</h3> 
+                    </button>
                 </div>
             </Modal>
         </div>        
     )
 
-    // return (
-    //     <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
-    //         <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
-    //             <div 
-    //                 className="equipment-selection-button"
-    //                 style={generateImage()}
-    //             >
-    //                 <div className="equipment-rarity-box">
-    //                     {generateRarity()}
-    //                 </div>
-    //                 <div className="equipment-level-box">
-    //                     {generateEnhance()}
-    //                 </div>
-    //             </div>
-    //         </OverlayTrigger>
-    //     </div>
-    // )
+    return (
+        <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
+            <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
+                <div 
+                    className="equipment-selection-button"
+                    style={generateImage()}
+                >
+                    <div className="equipment-rarity-box">
+                        {generateRarity()}
+                    </div>
+                    <div className="equipment-level-box">
+                        {generateEnhance()}
+                    </div>
+                </div>
+            </OverlayTrigger>
+        </div>
+    )
 }
 
