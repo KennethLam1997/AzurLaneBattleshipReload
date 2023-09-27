@@ -257,7 +257,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                     <Form.Group as={Row}>
                         <Col>
                             <SingleStatInputBox 
-                                iconsrc={new URL('/Reload_big.png', import.meta.url).href}
+                                iconsrc={new URL('/reload.png', import.meta.url).href}
                                 label="RLD"
                                 value={ship.bonusReload}
                                 onChange={(e) => handleCallBack({bonusReload: e.target.value})}
@@ -265,7 +265,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                         </Col>
                         <Col>
                             <SingleStatInputBox 
-                                iconsrc={new URL('/Reload_big.png', import.meta.url).href}
+                                iconsrc={new URL('/reload.png', import.meta.url).href}
                                 label="RLD (%)"
                                 value={ship.bonusPercentReload}
                                 onChange={(e) => handleCallBack({bonusPercentReload: e.target.value})}
@@ -273,7 +273,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                         </Col>
                         <Col>
                             <CheckBox
-                                iconsrc={new URL('/Health_big.png', import.meta.url).href}
+                                iconsrc={new URL('/health.png', import.meta.url).href}
                                 label="Oathed?"
                                 type="switch"
                                 value={ship.isOathed}
@@ -316,26 +316,6 @@ export function GearBox({ ship, database, handleCallBack }) {
                 </Col>
             )
         }
-
-        // equipmentBoxes.push(
-        //     <Col key={"Augment"}>
-        //         <EquipmentSelector 
-        //             key={"Augment"} 
-        //             database={database}
-        //             disabled={ship.name ? false : true}
-        //             equipment={ship.equipment["Augment"] ? ship.equipment["Augment"] : {}} 
-        //             slot={"Augment"}
-        //             handleCallBack={(state) => {
-        //                 handleCallBack({
-        //                     equipment: {
-        //                         ...ship.equipment,
-        //                         Augment: {...state}
-        //                     }
-        //                 })  
-        //             }}
-        //         />
-        //     </Col>
-        // )
 
         return equipmentBoxes
     }
@@ -693,7 +673,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
 
         const statStructure = new Map([
             ["DMG", self.damage],
-            ["FR",  self.rof],
+            ["FR",  equipment.cooldown ? equipment.cooldown : self.rof],
             ["HP",  self.health],
             ["FP",  self.firepower],
             ["AA",  self.antiair],
@@ -803,7 +783,8 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
             ...equipment,
             equipped: {
                 ...newEquipped
-            }
+            },
+            enhance: 0
         })
     }
 

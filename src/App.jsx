@@ -22,7 +22,8 @@ const TEMPLATETAB = {
         4: {},
         5: {},
         Augment: {}
-    }
+    },
+    bonusStats: {}
     // weapon: {
     //     imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
     //     enhance0: {}, 
@@ -51,10 +52,21 @@ export default function App ({ database }) {
             ...shipRef.current[i],
             ...state
         }
-        // const shipLevel = ship["level" + ship.level]
-        // const shipWeapon = ship.weapon["enhance" + ship.weapon.enhance]
-        // const postOathReload = calculateOathBonus(shipLevel.reload, ship.bonusReload, ship.isOathed)
-        //let cooldown = calculateCooldown(shipWeapon.rof, postOathReload, ship.bonusPercentReload)
+
+        const statFields = [
+            "health",
+            "reload",
+            "firepower",
+            "torpedo",
+            "evasion",
+            "antiair",
+            "aviation",
+            "consumption",
+            "asw",
+            "luck"
+        ]
+
+        let bonusStats = {}
 
         function equipmentStatAccumulator(ship, stat) {
             let statSum = 0
@@ -77,30 +89,22 @@ export default function App ({ database }) {
             return statSum
         }
 
-        // for (const [, equipment] of Object.entries(shipRef.current[i].equipment)) {
-        //     if (!equipment.equipped) continue
-
-        //     let cooldown = calculateCooldown(equipment.equipped["enhance" + equipment.enhance]["rof"], equipmentStatAccumulator(shipRef.current[i], "reload"), 0)
-        //     setShips(Object.assign([], shipRef.current[i].equipment, {[cooldown]: cooldown}))
-        // }
-
-        const statFields = [
-            "health",
-            "reload",
-            "firepower",
-            "torpedo",
-            "evasion",
-            "antiair",
-            "aviation",
-            "consumption",
-            "asw",
-            "luck"
-        ]
-
-        let bonusStats = {}
-
         for (const stat of statFields) {
             bonusStats[stat] = equipmentStatAccumulator(ship, stat)
+        }
+
+        for (let j = 1; j <= 3; j++) {
+            let equipment = ship.equipment[j]
+
+            if (!equipment.equipped) continue
+
+            if (equipment.equipped.type.includes("Gun")) {
+                ship.equipment[j].cooldown = calculateCooldown(
+                    equipment.equipped["enhance" + equipment.enhance].rof, 
+                    calculateOathBonus(ship["level" + ship.level].reload, bonusStats.reload + ship.bonusReload, ship.isOathed),
+                    ship.bonusPercentReload
+                )
+            }
         }
 
         setShips(Object.assign([], shipRef.current, {[i]: {...ship, bonusStats: bonusStats}}))
@@ -173,11 +177,11 @@ export default function App ({ database }) {
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
-                            {/*<BonusStatsBox 
+                            <BonusStatsBox 
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             />
-                            <GearStatsBox
+                            {/*<GearStatsBox
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
                             /> */}
