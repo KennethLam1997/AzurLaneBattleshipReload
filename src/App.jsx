@@ -111,14 +111,26 @@ export default function App ({ database }) {
         for (const [slot, equipment] of Object.entries(ship.equipment)) {
             if (!equipment.equipped) continue
 
-            const oathBonus = calculateOathBonus(ship["level" + ship.level].reload, ship.sumStats.reload + ship.bonusStats.reload, ship.bonusStats.isOathed)
+            let reload = calculateOathBonus(ship["level" + ship.level].reload, ship.bonusStats.isOathed)
+            reload += ship.sumStats.reload ? parseFloat(ship.sumStats.reload) : 0
+            reload += ship.bonusStats.reload ? parseFloat(ship.bonusStats.reload) : 0
+
+            console.log(reload)
 
             if (equipment.equipped.type.includes("Gun")) {
-                const cooldown = calculateGunCooldown(equipment.equipped["enhance" + equipment.enhance].rof, oathBonus, ship.bonusStats.reloadPercent)
+                const cooldown = calculateGunCooldown(
+                    equipment.equipped["enhance" + equipment.enhance].rof, 
+                    reload, 
+                    ship.bonusStats.reloadPercent
+                )
                 ship.equipment[slot].cooldown = cooldown   
             }
             else if (["Fighter", "Dive Bomber", "Torpedo Bomber"].includes(equipment.equipped.type)) {
-                const cooldown = calculateAircraftCooldown(equipment.equipped["enhance" + equipment.enhance].rof, oathBonus, ship.bonusStats.reloadPercent)
+                const cooldown = calculateAircraftCooldown(
+                    equipment.equipped["enhance" + equipment.enhance].rof, 
+                    reload, 
+                    ship.bonusStats.reloadPercent
+                )
                 ship.equipment[slot].cooldown = cooldown   
             }
         }
@@ -261,14 +273,16 @@ export default function App ({ database }) {
     )
 }
 
-function calculateOathBonus(shipReload, bonusFlatReload, isOathed) {
-    shipReload = parseFloat(shipReload) || 0
-    bonusFlatReload = parseFloat(bonusFlatReload) || 0
+function calculateOathBonus(stat, isOathed) {
+    stat = parseFloat(stat) || 0
     isOathed = isOathed != undefined ? isOathed : false
-    const reload = shipReload + bonusFlatReload
 
-    if (isOathed) return Math.ceil(reload / 1.06 * 1.12)
-    return reload
+    if (isOathed) {
+        return Math.ceil(stat / 1.06 * 1.12)
+    }
+    else {
+        return stat
+    }
 }
 
 function calculateGunCooldown(weaponReloadTime, shipReloadStat, bonusPercentReload) {
@@ -277,8 +291,8 @@ function calculateGunCooldown(weaponReloadTime, shipReloadStat, bonusPercentRelo
     bonusPercentReload = parseFloat(bonusPercentReload) / 100 || 0
 
     // Rounding down in two decimal places.
-    let cooldown = Math.floor((weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentReload) + 100))) * 100)
-    cooldown /= 100
+    let cooldown = weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentReload) + 100))
+    cooldown = Math.floor(cooldown * 100) / 100
     cooldown = cooldown.toFixed(2)
     return cooldown
 }
@@ -287,11 +301,11 @@ function calculateAircraftCooldown(aircraftReloadTime, shipReloadStat, bonusPerc
     aircraftReloadTime = parseFloat(aircraftReloadTime) || 0
     shipReloadStat = parseFloat(shipReloadStat) || 0
     bonusPercentReload = parseFloat(bonusPercentReload) / 100 || 0
-    
-    let cooldown = Math.floor((aircraftReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentReload) + 100))) * 100)
-    cooldown /= 100
+
+    let cooldown = aircraftReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentReload) + 100))
     // Custom constant factor for aircraft
-    cooldown -= -0.223 * Math.log(shipReloadStat) + 1.3419
+    cooldown += 0.223 * Math.log(shipReloadStat) - 1.3419
+    cooldown = Math.floor(cooldown * 100) / 100
     cooldown = cooldown.toFixed(2)
     return cooldown
 }
