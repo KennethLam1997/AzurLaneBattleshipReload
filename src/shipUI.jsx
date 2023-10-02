@@ -205,7 +205,7 @@ export function StatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
                                 label={ele[0]}
                                 field={ele[2]}
-                                field2={ship.sumStats[ele[1]]}
+                                field2={(ship.sumStats[ele[1]] || 0) + (ship.bonusStats[ele[1]] || 0)}
                             />                        
                         </Col>
                     )}
