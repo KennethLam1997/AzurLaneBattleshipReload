@@ -23,13 +23,8 @@ const TEMPLATETAB = {
         5: {},
         Augment: {}
     },
+    sumStats: {},
     bonusStats: {}
-    // weapon: {
-    //     imgsrc: new URL("/equipmentAddIcon.png", import.meta.url).href,
-    //     enhance0: {}, 
-    //     enhance10: {},
-    //     enhance: 0
-    // }
 }
 
 export default function App ({ database }) {
@@ -46,13 +41,24 @@ export default function App ({ database }) {
         localStorage.setItem('data', JSON.stringify(ships))
     }, [ships])
 
-    function addShipStats (i, state) {
+    function updateShip(i, state) {
         // Since callbacks don't use current state, use ref.
         const ship = {
             ...shipRef.current[i],
             ...state
         }
 
+        updateCalculations(i, ship)
+    }
+
+    function updateEquipment(i, state) {
+        // Since callbacks don't use current state, use ref.
+        const ship = {
+            ...shipRef.current[i],
+            ...state,
+            sumStats: {}
+        }
+        
         const statFields = [
             "health",
             "reload",
@@ -66,48 +72,58 @@ export default function App ({ database }) {
             "luck"
         ]
 
-        let bonusStats = {}
+        for (let [, equipment] of Object.entries(ship.equipment)) {
+            if (!equipment.equipped) continue
+            equipment = equipment.equipped["enhance" + equipment.enhance]
 
-        function equipmentStatAccumulator(ship, stat) {
-            let statSum = 0
-        
-            for (const [, equipment] of Object.entries(ship.equipment)) {
-                if (!equipment.equipped) continue
-        
-                let equipmentStat = equipment.equipped["enhance" + equipment.enhance][stat]
-                if (!equipmentStat) continue
-        
-                if (typeof(equipmentStat) == "number") {
-                    if (!isNaN(equipmentStat)) statSum += parseFloat(equipmentStat)
-                }
-                else {
-                    equipmentStat = equipmentStat.split("+").filter(ele => !isNaN(ele)).map(ele => parseFloat(ele))
-                    if (equipmentStat.length != 0) statSum += equipmentStat.reduce((a, b) => a + b, 0)
+            for (let [stat, value] of Object.entries(equipment)) {
+                if (statFields.includes(stat)) {
+                    if (!ship.sumStats[stat]) ship.sumStats[stat] = 0
+
+                    if (typeof(value) == "number" && !isNaN(value)) {
+                        ship.sumStats[stat] += parseFloat(value)
+                    }
+                    else {
+                        value = value.split("+").filter(ele => !isNaN(ele)).map(ele => parseFloat(ele))
+                        ship.sumStats[stat] = value.reduce((a, b) => a + b, 0)
+                    }
                 }
             }
-        
-            return statSum
         }
 
-        for (const stat of statFields) {
-            bonusStats[stat] = equipmentStatAccumulator(ship, stat)
+        updateCalculations(i, ship)
+    }
+
+    function updateBonusStats(i, state) {
+        // Since callbacks don't use current state, use ref.
+        const ship = {
+            ...shipRef.current[i],
+            bonusStats: {
+                ...shipRef.current[i].bonusStats,
+                ...state
+            }
         }
 
-        for (let j = 1; j <= 3; j++) {
-            let equipment = ship.equipment[j]
+        updateCalculations(i, ship)
+    }
 
+    function updateCalculations(i, ship) {
+        for (const [slot, equipment] of Object.entries(ship.equipment)) {
             if (!equipment.equipped) continue
 
+            const oathBonus = calculateOathBonus(ship["level" + ship.level].reload, ship.sumStats.reload + ship.bonusStats.reload, ship.bonusStats.isOathed)
+
             if (equipment.equipped.type.includes("Gun")) {
-                ship.equipment[j].cooldown = calculateCooldown(
-                    equipment.equipped["enhance" + equipment.enhance].rof, 
-                    calculateOathBonus(ship["level" + ship.level].reload, bonusStats.reload + ship.bonusReload, ship.isOathed),
-                    ship.bonusPercentReload
-                )
+                const cooldown = calculateGunCooldown(equipment.equipped["enhance" + equipment.enhance].rof, oathBonus, ship.bonusStats.reloadPercent)
+                ship.equipment[slot].cooldown = cooldown   
+            }
+            else if (["Fighter", "Dive Bomber", "Torpedo Bomber"].includes(equipment.equipped.type)) {
+                const cooldown = calculateAircraftCooldown(equipment.equipped["enhance" + equipment.enhance].rof, oathBonus, ship.bonusStats.reloadPercent)
+                ship.equipment[slot].cooldown = cooldown   
             }
         }
 
-        setShips(Object.assign([], shipRef.current, {[i]: {...ship, bonusStats: bonusStats}}))
+        setShips(Object.assign([], shipRef.current, {[i]: {...ship}}))
     }
 
     function handleOnSelect(key) {
@@ -157,12 +173,12 @@ export default function App ({ database }) {
                                 ship={ele} 
                                 database={database.ship}
                                 activeShips={ships.map(val => val.name)}
-                                handleCallBack={(state) => addShipStats(idx, state)}
+                                handleCallBack={(state) => updateShip(idx, state)}
                             />
-                            <CalculationBox
+                            {/* <CalculationBox
                                 ship={ele} 
                                 handleCallBack={(state) => addShipStats(idx, state)}
-                            />
+                            /> */}
                         </div>
                         <div className="right-container">
                             <div className="tab-container-label">
@@ -171,15 +187,15 @@ export default function App ({ database }) {
                             <GearBox
                                 ship={ele} 
                                 database={database.equipment}
-                                handleCallBack={(state) => addShipStats(idx, state)}
+                                handleCallBack={(state) => updateEquipment(idx, state)}
                             />
                             <StatsBox 
                                 ship={ele} 
-                                handleCallBack={(state) => addShipStats(idx, state)}
+                                handleCallBack={(state) => updateShip(idx, state)}
                             />
                             <BonusStatsBox 
                                 ship={ele} 
-                                handleCallBack={(state) => addShipStats(idx, state)}
+                                handleCallBack={(state) => updateBonusStats(idx, state)}
                             />
                             {/*<GearStatsBox
                                 ship={ele} 
@@ -255,10 +271,27 @@ function calculateOathBonus(shipReload, bonusFlatReload, isOathed) {
     return reload
 }
 
-function calculateCooldown(weaponReloadTime, shipReloadStat, bonusPercentStat) {
+function calculateGunCooldown(weaponReloadTime, shipReloadStat, bonusPercentReload) {
     weaponReloadTime = parseFloat(weaponReloadTime) || 0
     shipReloadStat = parseFloat(shipReloadStat) || 0
-    bonusPercentStat = parseFloat(bonusPercentStat) / 100 || 0
-    const cooldown = (weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentStat) + 100))).toFixed(2)
+    bonusPercentReload = parseFloat(bonusPercentReload) / 100 || 0
+
+    // Rounding down in two decimal places.
+    let cooldown = Math.floor((weaponReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentReload) + 100))) * 100)
+    cooldown /= 100
+    cooldown = cooldown.toFixed(2)
+    return cooldown
+}
+
+function calculateAircraftCooldown(aircraftReloadTime, shipReloadStat, bonusPercentReload) {
+    aircraftReloadTime = parseFloat(aircraftReloadTime) || 0
+    shipReloadStat = parseFloat(shipReloadStat) || 0
+    bonusPercentReload = parseFloat(bonusPercentReload) / 100 || 0
+    
+    let cooldown = Math.floor((aircraftReloadTime * Math.sqrt(200 / (shipReloadStat * (1 + bonusPercentReload) + 100))) * 100)
+    cooldown /= 100
+    // Custom constant factor for aircraft
+    cooldown -= -0.223 * Math.log(shipReloadStat) + 1.3419
+    cooldown = cooldown.toFixed(2)
     return cooldown
 }

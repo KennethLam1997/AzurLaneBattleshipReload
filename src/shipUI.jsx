@@ -183,7 +183,7 @@ export function StatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
                                 label={ele[0]}
                                 field={ship["level" + ship.level][ele[1]]}
-                                field2={ship.bonusStats[ele[1]]}
+                                field2={ship.sumStats[ele[1]]}
                             />                        
                         </Col>
                     )}
@@ -201,7 +201,7 @@ export function StatsBox({ ship, handleCallBack }) {
                         iconsrc={new URL('/asw.png', import.meta.url).href}
                         label="ASW"
                         field={ship["level" + ship.level]["asw"]}
-                        field2={ship.bonusStats["asw"]}
+                        field2={ship.sumStats["asw"]}
                     />                        
                 </Col>
             </Form.Group>
@@ -212,7 +212,7 @@ export function StatsBox({ ship, handleCallBack }) {
                         iconsrc={new URL('/luck.png', import.meta.url).href}
                         label="LCK"
                         field={ship["level" + ship.level]["luck"]}
-                        field2={ship.bonusStats["luck"]}
+                        field2={ship.sumStats["luck"]}
                     />                        
                 </Col>
             </Form.Group>
@@ -260,7 +260,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/reload.png', import.meta.url).href}
                                 label="RLD"
                                 value={ship.bonusReload}
-                                onChange={(e) => handleCallBack({bonusReload: e.target.value})}
+                                onChange={(e) => handleCallBack({reload: parseFloat(e.target.value)})}
                             />
                         </Col>
                         <Col>
@@ -268,7 +268,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/reload.png', import.meta.url).href}
                                 label="RLD (%)"
                                 value={ship.bonusPercentReload}
-                                onChange={(e) => handleCallBack({bonusPercentReload: e.target.value})}
+                                onChange={(e) => handleCallBack({reloadPercent: parseFloat(e.target.value)})}
                             />
                         </Col>
                         <Col>
