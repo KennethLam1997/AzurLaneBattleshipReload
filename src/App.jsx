@@ -67,6 +67,7 @@ export default function App ({ database }) {
             "evasion",
             "antiair",
             "aviation",
+            "accuracy",
             "consumption",
             "asw",
             "luck"
@@ -85,7 +86,7 @@ export default function App ({ database }) {
                     }
                     else {
                         value = value.split("+").filter(ele => !isNaN(ele)).map(ele => parseFloat(ele))
-                        ship.sumStats[stat] = value.reduce((a, b) => a + b, 0)
+                        ship.sumStats[stat] += value.reduce((a, b) => a + b, 0)
                     }
                 }
             }
@@ -114,8 +115,6 @@ export default function App ({ database }) {
             let reload = calculateOathBonus(ship["level" + ship.level].reload, ship.bonusStats.isOathed)
             reload += ship.sumStats.reload ? parseFloat(ship.sumStats.reload) : 0
             reload += ship.bonusStats.reload ? parseFloat(ship.bonusStats.reload) : 0
-
-            console.log(reload)
 
             if (equipment.equipped.type.includes("Gun")) {
                 const cooldown = calculateGunCooldown(

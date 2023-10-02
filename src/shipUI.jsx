@@ -159,7 +159,19 @@ export function StatsBox({ ship, handleCallBack }) {
     }, [level])
 
     const generateFields = () => {
-        const statFields = [
+        function calculateOathBonus(stat, isOathed) {
+            stat = parseFloat(stat) || 0
+            isOathed = isOathed != undefined ? isOathed : false
+        
+            if (isOathed) {
+                return Math.ceil(stat / 1.06 * 1.12)
+            }
+            else {
+                return stat
+            }
+        }
+
+        let statFields = [
             ["HP",  "health"],
             ["",    "armor"],
             ["RLD", "reload"],
@@ -168,10 +180,20 @@ export function StatsBox({ ship, handleCallBack }) {
             ["EVA", "evasion"],
             ["AA",  "antiair"],
             ["AVI", "aviation"],
-            ["Cost", "consumption"]
-        ]
+            ["ACC", "accuracy"]
+        ].map(ele => {
+            if (ele[1] != "armor") {
+                ele.push(calculateOathBonus(ship["level" + ship.level][ele[1]], ship.bonusStats.isOathed))
+            }
+            else {
+                ele.push(ship["level" + ship.level][ele[1]])
+            }
+
+            return ele
+        })
+
         let fields = []
-        const sectionSize = 3
+        let sectionSize = 3
         let idx = 0
 
         while (idx < statFields.length) {
@@ -182,7 +204,7 @@ export function StatsBox({ ship, handleCallBack }) {
                             <SingleStatBox
                                 iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
                                 label={ele[0]}
-                                field={ship["level" + ship.level][ele[1]]}
+                                field={ele[2]}
                                 field2={ship.sumStats[ele[1]]}
                             />                        
                         </Col>
@@ -193,31 +215,37 @@ export function StatsBox({ ship, handleCallBack }) {
             idx += sectionSize
         }
 
-        fields.push(
-            <>
-            <Form.Group as={Row}>
-                <Col xs="auto">
-                    <SingleStatBox
-                        iconsrc={new URL('/asw.png', import.meta.url).href}
-                        label="ASW"
-                        field={ship["level" + ship.level]["asw"]}
-                        field2={ship.sumStats["asw"]}
-                    />                        
-                </Col>
-            </Form.Group>
-            <hr></hr>
-            <Form.Group as={Row}>
-                <Col xs="auto">
-                    <SingleStatBox
-                        iconsrc={new URL('/luck.png', import.meta.url).href}
-                        label="LCK"
-                        field={ship["level" + ship.level]["luck"]}
-                        field2={ship.sumStats["luck"]}
-                    />                        
-                </Col>
-            </Form.Group>
-            </>
-        )
+        statFields = [
+            ["ASW", "asw"],
+            ["SPD", "speed"],
+            ["LCK", "luck"],
+            ["Cost", "consumption"]
+        ].map(ele => [ele[0], ele[1], ship["level" + ship.level][ele[1]]])
+        
+        sectionSize = 2
+        idx = 0
+
+        while (idx < statFields.length) {
+            fields.push(
+                <>
+                <Form.Group as={Row}>
+                    {statFields.slice(idx, idx + sectionSize).map((ele) => 
+                        <Col xs="auto">
+                            <SingleStatBox
+                                iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
+                                label={ele[0]}
+                                field={ele[2]}
+                                field2={ship.sumStats[ele[1]]}
+                            />                        
+                        </Col>
+                    )}
+                </Form.Group>
+                <hr></hr>
+                </>
+            )
+
+            idx += sectionSize            
+        }
 
         return fields
     }
