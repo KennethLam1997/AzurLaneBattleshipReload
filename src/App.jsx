@@ -11,10 +11,12 @@ import { ShipBox, StatsBox, BonusStatsBox, GearBox, GearStatsBox, CalculationBox
 const TEMPLATETAB = {
     imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
     level: 1,
-    level1: {}, 
-    level100: {}, 
-    level120: {}, 
-    level125: {}, 
+    statsByLevel: {
+        1: {},
+        100: {},
+        120: {},
+        125: {}
+    },
     equipment: {
         1: {},
         2: {},
@@ -75,7 +77,7 @@ export default function App ({ database }) {
 
         for (let [, equipment] of Object.entries(ship.equipment)) {
             if (!equipment.equipped) continue
-            equipment = equipment.equipped["enhance" + equipment.enhance]
+            equipment = equipment.equipped.statsByLevel[equipment.enhance]
 
             for (let [stat, value] of Object.entries(equipment)) {
                 if (statFields.includes(stat)) {
@@ -112,13 +114,13 @@ export default function App ({ database }) {
         for (const [slot, equipment] of Object.entries(ship.equipment)) {
             if (!equipment.equipped) continue
 
-            let reload = calculateOathBonus(ship["level" + ship.level].reload, ship.bonusStats.isOathed)
+            let reload = calculateOathBonus(ship.statsByLevel[ship.level].reload, ship.bonusStats.isOathed)
             reload += ship.sumStats.reload ? parseFloat(ship.sumStats.reload) : 0
             reload += ship.bonusStats.reload ? parseFloat(ship.bonusStats.reload) : 0
 
             if (equipment.equipped.type.includes("Gun")) {
                 const cooldown = calculateGunCooldown(
-                    equipment.equipped["enhance" + equipment.enhance].rof, 
+                    equipment.equipped.statsByLevel[equipment.enhance].rof, 
                     reload, 
                     ship.bonusStats.reloadPercent
                 )
@@ -126,7 +128,7 @@ export default function App ({ database }) {
             }
             else if (["Fighter", "Dive Bomber", "Torpedo Bomber"].includes(equipment.equipped.type)) {
                 const cooldown = calculateAircraftCooldown(
-                    equipment.equipped["enhance" + equipment.enhance].rof, 
+                    equipment.equipped.statsByLevel[equipment.enhance].rof, 
                     reload, 
                     ship.bonusStats.reloadPercent
                 )

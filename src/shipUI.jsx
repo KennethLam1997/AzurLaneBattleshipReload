@@ -183,10 +183,10 @@ export function StatsBox({ ship, handleCallBack }) {
             ["ACC", "accuracy"]
         ].map(ele => {
             if (ele[1] != "armor") {
-                ele.push(calculateOathBonus(ship["level" + ship.level][ele[1]], ship.bonusStats.isOathed))
+                ele.push(calculateOathBonus(ship.statsByLevel[ship.level][ele[1]], ship.bonusStats.isOathed))
             }
             else {
-                ele.push(ship["level" + ship.level][ele[1]])
+                ele.push(ship.statsByLevel[ship.level][ele[1]])
             }
 
             return ele
@@ -220,7 +220,7 @@ export function StatsBox({ ship, handleCallBack }) {
             ["SPD", "speed"],
             ["LCK", "luck"],
             ["Cost", "consumption"]
-        ].map(ele => [ele[0], ele[1], ship["level" + ship.level][ele[1]]])
+        ].map(ele => [ele[0], ele[1], ship.statsByLevel[ship.level][ele[1]]])
         
         sectionSize = 2
         idx = 0
@@ -287,7 +287,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                             <SingleStatInputBox 
                                 iconsrc={new URL('/reload.png', import.meta.url).href}
                                 label="RLD"
-                                value={ship.bonusReload}
+                                value={ship.bonusStats.reload}
                                 onChange={(e) => handleCallBack({reload: parseFloat(e.target.value)})}
                             />
                         </Col>
@@ -295,7 +295,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                             <SingleStatInputBox 
                                 iconsrc={new URL('/reload.png', import.meta.url).href}
                                 label="RLD (%)"
-                                value={ship.bonusPercentReload}
+                                value={ship.bonusStats.reloadPercent}
                                 onChange={(e) => handleCallBack({reloadPercent: parseFloat(e.target.value)})}
                             />
                         </Col>
@@ -304,7 +304,7 @@ export function BonusStatsBox({ ship, handleCallBack }) {
                                 iconsrc={new URL('/health.png', import.meta.url).href}
                                 label="Oathed?"
                                 type="switch"
-                                value={ship.isOathed}
+                                value={ship.bonusStats.isOathed}
                                 onChange={(e) => handleCallBack({isOathed: e.target.checked})}
                             />
                         </Col>
@@ -360,141 +360,6 @@ export function GearBox({ ship, database, handleCallBack }) {
             </div>
         </div>
     );
-}
-
-export function GearStatsBox({ ship, handleCallBack }) {
-    const enhanceMap = [0, 10]
-    const [enhance, setEnhance] = useState(ship.weapon !== undefined ? enhanceMap.indexOf(ship.weapon.enhance) : 0)
-
-    useEffect(() => {
-        handleCallBack({
-            weapon: {
-                ...ship.weapon,
-                enhance: enhanceMap[enhance]
-            }
-        })
-    }, [enhance])
-
-    return (
-        <div className="box centered-horizontal" style={{width: "600px", top: "30px"}}>
-            <h4 className="min-label">{ship.weapon.name}</h4>
-            <div className="box-inner">
-                <Form>
-                    <Form.Group as={Row} className="box-sub-inner">
-                        <Form.Label column style={{width: "100px", padding: "0px"}}>
-                            <h5>Enhance +{enhanceMap[enhance]}</h5>
-                        </Form.Label>
-                        <Col>
-                            <Form.Range 
-                                min={0} 
-                                value={enhance} 
-                                max={1} 
-                                step={1} 
-                                onChange={(e) => setEnhance(e.target.value)}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/Firepower_big.png', import.meta.url).href}
-                                label="FP"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].firepower}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                iconsrc={new URL('/AntiAir_big.png', import.meta.url).href}
-                                label="AA"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].antiair}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="Damage"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].damage}
-                            />
-                        </Col>
-                    </Form.Group>  
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                label="Rate of Fire"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].rof}
-                                suffix="s"
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="Spread"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].spread}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="Angle"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].angle}
-                                suffix="°"
-                            />
-                        </Col>
-                    </Form.Group>         
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                label="Range"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].range}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="Volley"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].volley}
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="Volley Time"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].volleyTime}
-                                suffix="s"
-                            />
-                        </Col>
-                    </Form.Group>   
-                    <hr></hr>
-                    <Form.Group as={Row}>
-                        <Col xs="4">
-                            <SingleStatBox 
-                                label="Type"
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].ammoType}
-                            />
-                        </Col>
-                    </Form.Group>  
-                    <Form.Group as={Row}>
-                        <Col>
-                            <SingleStatBox 
-                                label="LT Eff."
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].light}
-                                suffix="%"
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="MED Eff."
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].medium}
-                                suffix="%"
-                            />
-                        </Col>
-                        <Col>
-                            <SingleStatBox 
-                                label="HVY Eff."
-                                field={ship.weapon["enhance" + enhanceMap[enhance]].heavy}
-                                suffix="%"
-                            />
-                        </Col>
-                    </Form.Group>                           
-                </Form>
-            </div>
-        </div>
-    )    
 }
 
 export function CalculationBox({ ship, handleCallBack }) {
@@ -697,7 +562,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
     const generateModalStats = () => {
         if (!equipment.equipped) return
 
-        const self = equipment.equipped["enhance" + equipment.enhance]
+        const self = equipment.equipped.statsByLevel[equipment.enhance]
 
         const statStructure = new Map([
             ["DMG", self.damage],
@@ -894,4 +759,3 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         </div>
     )
 }
-
