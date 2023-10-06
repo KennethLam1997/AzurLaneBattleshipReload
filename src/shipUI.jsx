@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { OverlayTrigger, Popover } from "react-bootstrap";
+import { Overlay, OverlayTrigger, Popover } from "react-bootstrap";
 import Modal from 'react-bootstrap/Modal';
 
 import { CheckBox, SingleStatBox, SingleStatInputBox } from "./inputBoxes";
@@ -12,7 +12,7 @@ import { sum } from "d3";
 const SHIPS = JSON.parse(localStorage.getItem('allship'))
 const EQUIPMENT = JSON.parse(localStorage.getItem('allequipment'))
 
-export function ShipBox({ ship, database, activeShips, handleCallBack }) {
+export function ShipBox({ ship, activeShips, handleCallBack }) {
     const generateOptions = () => {
         let database = SHIPS
         const rarityMap = {
@@ -30,9 +30,7 @@ export function ShipBox({ ship, database, activeShips, handleCallBack }) {
         }
 
         database = database.sort(sortFn)
-        database = database.filter(val => !activeShips.includes(val.name))
-
-        let options = [<option key="" value="" defaultValue={true} disabled hidden></option>]
+        let options = [<option key="" value="" disabled hidden></option>]
 
         database.forEach((ele) => {
             options.push(<option className={ele.rarity} key={ele.name} value={ele.name}>{ele.name}</option>)
@@ -316,8 +314,6 @@ export function BonusStatsBox({ ship, handleCallBack }) {
 }
 
 export function GearBox({ ship, database, handleCallBack }) {
-    const equipmentLimit = 5
-
     const generateSelectors = () => {
         let equipmentBoxes = []
         
@@ -458,12 +454,10 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
     }
 
     const tooltip = () => {
-        if (disabled) return (
+        if (equipment.equipped) return <></>
+        else if (disabled) return (
             <Popover id="popover-basic" style={{maxWidth: "100%"}}>
-                <Popover.Header>Feature under development!</Popover.Header>
-                <Popover.Body >
-                    Check back for any updates.
-                </Popover.Body>
+                <Popover.Header>Add a ship first!</Popover.Header>
             </Popover>            
         )
 
@@ -668,6 +662,14 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
         return boxes
     }
 
+    const removeEquipment = () => {
+        const newEquipment = equipment
+        delete newEquipment.equipped
+        newEquipment.enhance = 0
+
+        handleCallBack(newEquipment)
+    }
+
     const updateEquipment = async (id) => {
         const newEquipped = EQUIPMENT.find(val => val._id == id)
         if (!newEquipped) throw new Error("Weapon could not be loaded!")
@@ -692,18 +694,20 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
 
     return (
         <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
-            <div 
-                className="equipment-selection-button"
-                style={generateImage()}
-                onClick={() => setShowModal(true)}
-            >
-                <div className={"equipment-stars"} style={{top: "80%"}}>
-                    {generateRarity(15, 15, 10)}
+            <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
+                <div 
+                    className="equipment-selection-button"
+                    style={generateImage()}
+                    onClick={() => {if (equipment.equipped) setShowModal(true);}}
+                >
+                    <div className={"equipment-stars"} style={{top: "80%"}}>
+                        {generateRarity(15, 15, 10)}
+                    </div>
+                    <div className="equipment-level-box">
+                        {generateEnhance()}
+                    </div>
                 </div>
-                <div className="equipment-level-box">
-                    {generateEnhance()}
-                </div>
-            </div>
+            </OverlayTrigger>
 
             <Modal show={showModal} onHide={() => setShowModal(false)} dialogClassName="equipment-modal">
                 <div className="equipment-modal-content">
@@ -727,11 +731,8 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                     {generateModalStats()}
                 </div>
                 <div className="equipment-modal-button-div">
-                    <button>
+                    <button onClick={() => {setShowModal(false); removeEquipment();}}>
                         <h3>Unequip</h3>
-                    </button>
-                    <button>
-                        <h3>Change</h3>
                     </button>
                     <button onClick={() => updateEnhance()}>
                         <h3>{equipment.enhance == 0 ? "Enhance +10" : "Unenhance"}</h3> 
@@ -739,23 +740,5 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
                 </div>
             </Modal>
         </div>        
-    )
-
-    return (
-        <div className={[equipment.equipped ? equipment.equipped.rarity.toLowerCase().replace(" ", "_") : "", "equipment-box"].join(" ")}>
-            <OverlayTrigger trigger="click" rootClose placement="right" overlay={tooltip()}>
-                <div 
-                    className="equipment-selection-button"
-                    style={generateImage()}
-                >
-                    <div className="equipment-rarity-box">
-                        {generateRarity()}
-                    </div>
-                    <div className="equipment-level-box">
-                        {generateEnhance()}
-                    </div>
-                </div>
-            </OverlayTrigger>
-        </div>
     )
 }

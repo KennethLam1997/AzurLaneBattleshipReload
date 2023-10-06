@@ -6,7 +6,7 @@ import Nav from 'react-bootstrap/Nav';
 import Row from 'react-bootstrap/Row';
 
 import TimingGraph from './plotter.jsx';
-import { ShipBox, StatsBox, BonusStatsBox, GearBox, GearStatsBox, CalculationBox } from "./shipUI.jsx";
+import { ShipBox, StatsBox, BonusStatsBox, GearBox } from "./shipUI.jsx";
 
 const TEMPLATETAB = {
     imgsrc_chibi: new URL("/unknown_ship_icon.png", import.meta.url).href,
@@ -185,7 +185,6 @@ export default function App ({ database }) {
                             <ShipBox 
                                 ship={ele} 
                                 database={database.ship}
-                                activeShips={ships.map(val => val.name)}
                                 handleCallBack={(state) => updateShip(idx, state)}
                             />
                             {/* <CalculationBox
