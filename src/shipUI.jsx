@@ -3,16 +3,15 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { Overlay, OverlayTrigger, Popover } from "react-bootstrap";
+import { OverlayTrigger, Popover } from "react-bootstrap";
 import Modal from 'react-bootstrap/Modal';
 
 import { CheckBox, SingleStatBox, SingleStatInputBox } from "./inputBoxes";
-import { sum } from "d3";
 
 const SHIPS = JSON.parse(localStorage.getItem('allship'))
 const EQUIPMENT = JSON.parse(localStorage.getItem('allequipment'))
 
-export function ShipBox({ ship, activeShips, handleCallBack }) {
+export function ShipBox({ ship, handleCallBack }) {
     const generateOptions = () => {
         let database = SHIPS
         const rarityMap = {
@@ -98,6 +97,10 @@ export function ShipBox({ ship, activeShips, handleCallBack }) {
         else return ""
     }
 
+    const generateTypeIcon = () => {
+        if (ship.type) return new URL('/' + ship.type + '.png', import.meta.url).href
+    }
+
     const generateIcon = () => {
         if (ship.imgsrc) return {backgroundImage: "url(" + new URL(ship.imgsrc, import.meta.url).href + ")"}
     }
@@ -125,7 +128,7 @@ export function ShipBox({ ship, activeShips, handleCallBack }) {
                             }}
                         >
                             <img 
-                                src={new URL('/BB.png', import.meta.url).href}
+                                src={generateTypeIcon()}
                                 alt="Ship type icon"
                                 height="27px"
                             ></img>
@@ -196,11 +199,12 @@ export function StatsBox({ ship, handleCallBack }) {
 
         while (idx < statFields.length) {
             fields.push(
-                <Form.Group as={Row}>
+                <Form.Group as={Row} key={(idx / sectionSize) + 1}>
                     {statFields.slice(idx, idx + sectionSize).map((ele) => 
-                        <Col>
+                        <Col key={ele[1]}>
                             <SingleStatBox
                                 iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
+                                key={ele[1]}
                                 label={ele[0]}
                                 field={ele[2]}
                                 field2={(ship.sumStats[ele[1]] || 0) + (ship.bonusStats[ele[1]] || 0)}
@@ -226,11 +230,12 @@ export function StatsBox({ ship, handleCallBack }) {
         while (idx < statFields.length) {
             fields.push(
                 <>
-                <Form.Group as={Row}>
+                <Form.Group as={Row} key={-(idx / sectionSize) - 1}>
                     {statFields.slice(idx, idx + sectionSize).map((ele) => 
-                        <Col xs="auto">
+                        <Col xs="auto" key={ele[1]}>
                             <SingleStatBox
                                 iconsrc={new URL('/' + ele[1] + '.png', import.meta.url).href}
+                                key={ele[1]}
                                 label={ele[0]}
                                 field={ele[2]}
                                 field2={ship.sumStats[ele[1]]}
@@ -252,8 +257,8 @@ export function StatsBox({ ship, handleCallBack }) {
         <div className="box centered-horizontal" style={{top: "10px"}}>
             <h4 className="min-label">{ship.name}</h4>
             <div className="box-inner">
-                <Form>
-                    <Form.Group as={Row} className="box-sub-inner">
+                <Form key={0}>
+                    <Form.Group as={Row} className="box-sub-inner" key={0}>
                         <Form.Label column style={{width: "100px", padding: "0px"}}>
                             <h5>Level {ship.level}</h5>
                         </Form.Label>
@@ -394,6 +399,13 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
             if (fits == "Anti-Air Guns") {
                 return "AA Gun"
             }
+            else if (fits.includes("Torpedoes")) {
+                fits = fits.replace("Torpedoes", "Torpedo")
+                return fits
+            }
+            else if (fits == "Auxiliaries") {
+                return "Auxiliary"
+            }
             else {
                 fits = fits.replace(" Main", "")
                 fits = fits.endsWith("s") ? fits.slice(0, -1) : fits
@@ -455,12 +467,12 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
 
     const tooltip = () => {
         if (equipment.equipped) return <></>
-        else if (disabled) return (
+        if (disabled) return (
             <Popover id="popover-basic" style={{maxWidth: "100%"}}>
                 <Popover.Header>Add a ship first!</Popover.Header>
             </Popover>            
         )
-
+        
         return (
             <Popover id="popover-basic" style={{maxWidth: "100%"}}>
                 <Popover.Header>Add equipment?</Popover.Header>
@@ -648,7 +660,7 @@ function EquipmentSelector({ equipment, slot, database, handleCallBack, disabled
             }
 
             boxes.push(
-                <div className="equipment-modal-statbox" style={{marginLeft: leftMarginOffset + "px"}}>
+                <div className="equipment-modal-statbox" style={{marginLeft: leftMarginOffset + "px"}} key={key}>
                     <div style={{float: "left", paddingLeft: "10px"}}>
                         <h5>{key}</h5>
                     </div>
